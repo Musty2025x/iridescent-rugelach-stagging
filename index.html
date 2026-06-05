@@ -385,19 +385,20 @@
       border: none;
       padding: 6px 12px;
       font-size: 13px;
-      color: var(--text2);
+      color: var(--text3);
       border-radius: var(--rad-sm);
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 5px;
       white-space: nowrap;
+      transition: color 0.15s;
     }
 
     nav button.active {
-      background: var(--bg3);
-      color: var(--text);
-      font-weight: 500;
+      background: transparent;
+      color: var(--accent);
+      font-weight: 600;
     }
 
     main {
@@ -467,19 +468,20 @@
 
     .btn-primary {
       width: 100%;
-      background: var(--bg);
-      color: #fff;
+      background: var(--accent);
+      color: #080F1E;
       border: none;
       border-radius: var(--rad-sm);
       padding: 13px;
       font-size: 15px;
-      font-weight: 500;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       margin-top: 4px;
+      box-shadow: 0 2px 12px rgba(245,166,35,0.25);
     }
 
     .btn-primary:active {
@@ -806,7 +808,7 @@
 
     .banner.ok {
       background: var(--accent-bg);
-      border: 0.5px solid var(--green);
+      border: 0.5px solid var(--accent);
     }
 
     .banner i {
@@ -884,9 +886,10 @@
 
     .preset-btn:active,
     .preset-btn.active-preset {
-      background: var(--bg);
-      color: #fff;
+      background: var(--accent);
+      color: #080F1E;
       border-color: var(--accent);
+      font-weight: 700;
     }
 
     .report-hero {
@@ -952,12 +955,12 @@
 
     .sub-btn {
       flex: 1;
-      background: transparent;
+      background: var(--bg3);
       border: none;
       padding: 7px 8px;
       font-size: 12px;
       color: var(--text2);
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -965,13 +968,14 @@
       gap: 4px;
       white-space: nowrap;
       font-family: inherit;
+      transition: all 0.15s;
     }
 
     .sub-btn.active {
-      background: var(--bg);
-      color: var(--text);
-      font-weight: 500;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      background: var(--accent);
+      color: #080F1E;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(245,166,35,0.3);
     }
 
     .sub-sec {
@@ -1085,7 +1089,7 @@
           <div class="prog-wrap">
             <div class="prog-head"><span>Today's sales</span><span id="livePct">0%</span></div>
             <div class="prog-track">
-              <div class="prog-fill" id="liveBar" style="width:0%;background:var(--green);"></div>
+              <div class="prog-fill" id="liveBar" style="width:0%;background:var(--accent);"></div>
             </div>
           </div>
         </div>
@@ -1960,9 +1964,9 @@
       document.getElementById('cActOut').textContent = M(total);
       var dEl = document.getElementById('cDiffOut'), mEl = document.getElementById('cStatusMsg');
       if (Math.abs(diff) < 1) {
-        dEl.textContent = '\u20a60'; dEl.style.color = 'var(--green)';
-        mEl.textContent = '\u2713 Total matches expected \u2014 no discrepancy.'; mEl.style.color = 'var(--green)';
-        pr.style.borderColor = 'var(--green)';
+        dEl.textContent = '\u20a60'; dEl.style.color = 'var(--accent)';
+        mEl.textContent = '\u2713 Total matches expected \u2014 no discrepancy.'; mEl.style.color = 'var(--accent)';
+        pr.style.borderColor = 'var(--accent)';
       } else if (diff < 0) {
         dEl.textContent = '-' + M(Math.abs(diff)); dEl.style.color = 'var(--red)';
         mEl.textContent = '\u26a0 Shortfall of ' + M(Math.abs(diff)) + ' \u2014 payment is missing!'; mEl.style.color = 'var(--red)';
@@ -2089,7 +2093,7 @@
       var h = '';
       data.slice().reverse().forEach(function (m) {
         var diff = m.total - m.revenue;
-        var diffCls = Math.abs(diff) < 1 ? 'color:var(--green)' : diff < 0 ? 'color:var(--red)' : 'color:var(--amber)';
+        var diffCls = Math.abs(diff) < 1 ? 'color:var(--accent)' : diff < 0 ? 'color:var(--red)' : 'color:var(--amber)';
         var diffStr = Math.abs(diff) < 1 ? '\u20a60' : diff < 0 ? '-' + M(Math.abs(diff)) : '+' + M(diff);
         h += '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad);padding:1rem 1.1rem;margin-bottom:12px;">' +
           '<p style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;">' + mLabel(m.key) + '</p>' +
@@ -2222,7 +2226,7 @@
       function fmtShort(s) { return new Date(s + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
       var rangeLabel = fmtShort(from) + ' &mdash; ' + fmtShort(to);
 
-      var varCls = Math.abs(variance) < 1 ? 'color:var(--green)' : variance < 0 ? 'color:var(--red)' : 'color:var(--amber)';
+      var varCls = Math.abs(variance) < 1 ? 'color:var(--accent)' : variance < 0 ? 'color:var(--red)' : 'color:var(--amber)';
       var varStr = Math.abs(variance) < 1 ? '\u20a60 (Matched)' : variance < 0 ? '-' + M(Math.abs(variance)) + ' (Shortfall)' : '+' + M(variance) + ' (Surplus)';
       var varBanner = Math.abs(variance) < 1
         ? '<div class="banner ok" style="margin-top:10px;"><i class="ti ti-circle-check"></i><p>Payments match revenue for this period.</p></div>'
@@ -2413,7 +2417,7 @@
       if (periods.length) {
         var current    = periods[periods.length - 1];
         var remaining  = current.remaining;
-        var remCls     = (stockThreshold > 0 && remaining <= stockThreshold) ? 'color:var(--red)' : 'color:var(--green)';
+        var remCls     = (stockThreshold > 0 && remaining <= stockThreshold) ? 'color:var(--red)' : 'color:var(--accent)';
 
         sumEl.innerHTML =
           '<div class="stat-card"><div class="lbl">Current period delivered</div><div class="val">' + N(current.delivery.kg, 1) + ' kg</div></div>' +
