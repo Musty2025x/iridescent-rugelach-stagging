@@ -46,69 +46,68 @@
 
     :root {
       /* ── GasLedger dark navy + amber theme ── */
-      --bg: #080F1E;
-      --bg2: #111827;
-      --bg3: #1A2235;
-      --text: #E8EFF8;
+      --bg:    #080F1E;
+      --bg2:   #111827;
+      --bg3:   #1A2235;
+      --text:  #E8EFF8;
       --text2: #8896A8;
       --text3: #4A5E78;
-      --border: rgba(255, 255, 255, 0.08);
-      --border2: rgba(255, 255, 255, 0.15);
+      --border:  rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.15);
       --rad: 14px;
       --rad-sm: 10px;
       /* accent */
-      --accent: #F5A623;
+      --accent:      #F5A623;
       --accent-dark: #D4891A;
-      --accent-bg: rgba(245, 166, 35, 0.15);
+      --accent-bg:   rgba(245,166,35,0.15);
       --accent-text: #F5A623;
       /* semantic */
-      --green: #2ECC71;
-      --green-bg: #0A2D1A;
+      --green:      #2ECC71;
+      --green-bg:   #0A2D1A;
       --green-text: #A3E9C1;
-      --red: #E05C68;
-      --red-bg: #2D0A0F;
-      --red-text: #F4AABA;
-      --amber: #F5A623;
-      --amber-bg: rgba(245, 166, 35, 0.15);
+      --red:        #E05C68;
+      --red-bg:     #2D0A0F;
+      --red-text:   #F4AABA;
+      --amber:      #F5A623;
+      --amber-bg:   rgba(245,166,35,0.15);
       --amber-text: #FAC675;
-      --blue: #4A9EF5;
-      --blue-bg: #0A1E3D;
-      --blue-text: #B5D4F4;
+      --blue:       #4A9EF5;
+      --blue-bg:    #0A1E3D;
+      --blue-text:  #B5D4F4;
       /* shadows */
-      --shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+      --shadow:    0 4px 24px rgba(0,0,0,0.6);
+      --shadow-sm: 0 2px 8px  rgba(0,0,0,0.4);
     }
 
     /* Force dark theme even on light-mode devices */
     @media (prefers-color-scheme: light) {
       :root {
-        --bg: #080F1E;
-        --bg2: #111827;
-        --bg3: #1A2235;
-        --text: #E8EFF8;
+        --bg:    #080F1E;
+        --bg2:   #111827;
+        --bg3:   #1A2235;
+        --text:  #E8EFF8;
         --text2: #8896A8;
         --text3: #4A5E78;
-        --border: rgba(255, 255, 255, 0.08);
-        --border2: rgba(255, 255, 255, 0.15);
-        --green: #2ECC71;
-        --green-bg: #0A2D1A;
+        --border:  rgba(255,255,255,0.08);
+        --border2: rgba(255,255,255,0.15);
+        --green:      #2ECC71;
+        --green-bg:   #0A2D1A;
         --green-text: #A3E9C1;
-        --red: #E05C68;
-        --red-bg: #2D0A0F;
-        --red-text: #F4AABA;
-        --amber: #F5A623;
-        --amber-bg: rgba(245, 166, 35, 0.15);
+        --red:        #E05C68;
+        --red-bg:     #2D0A0F;
+        --red-text:   #F4AABA;
+        --amber:      #F5A623;
+        --amber-bg:   rgba(245,166,35,0.15);
         --amber-text: #FAC675;
-        --blue: #4A9EF5;
-        --blue-bg: #0A1E3D;
-        --blue-text: #B5D4F4;
+        --blue:       #4A9EF5;
+        --blue-bg:    #0A1E3D;
+        --blue-text:  #B5D4F4;
       }
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color-scheme: dark;
-      background: var(--bg3);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color-scheme: dark;
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       padding-bottom: 3rem;
@@ -121,15 +120,17 @@
       align-items: center;
       justify-content: center;
       padding: 1.5rem;
+      background: var(--bg);
     }
 
     .login-box {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
+      background: var(--bg3);
+      border: 1px solid var(--border2);
       border-radius: var(--rad);
       padding: 2rem 1.5rem;
       width: 100%;
       max-width: 380px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
     }
 
     .login-logo {
@@ -176,7 +177,7 @@
 
     .login-box input {
       width: 100%;
-      background: var(--bg2);
+      background: var(--bg3);
       border: 0.5px solid var(--border);
       border-radius: var(--rad-sm);
       padding: 11px 12px;
@@ -214,8 +215,8 @@
 
     .login-btn {
       width: 100%;
-      background: var(--bg);
-      color: #fff;
+      background: var(--accent);
+      color: #080F1E;
       border: none;
       border-radius: var(--rad-sm);
       padding: 13px;
@@ -259,7 +260,7 @@
       gap: 6px;
       font-size: 11px;
       padding: 5px 1.25rem;
-      background: var(--bg2);
+      background: var(--bg3);
       border-bottom: 0.5px solid var(--border);
       color: var(--text2);
     }
@@ -273,7 +274,7 @@
     }
 
     #syncDot.ok {
-      background: var(--bg);
+      background: var(--accent);
     }
 
     #syncDot.err {
@@ -281,8 +282,8 @@
     }
 
     header {
-      background: var(--bg);
-      border-bottom: 0.5px solid var(--border);
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border2);
       padding: 0.9rem 1.25rem 0.75rem;
       position: sticky;
       top: 0;
@@ -353,10 +354,10 @@
     }
 
     .logout-btn {
-      background: transparent;
-      border: 0.5px solid var(--border2);
+      background: var(--bg3);
+      border: 1px solid var(--border2);
       border-radius: var(--rad-sm);
-      padding: 5px 10px;
+      padding: 6px 12px;
       font-size: 12px;
       color: var(--text2);
       cursor: pointer;
@@ -394,7 +395,7 @@
     }
 
     nav button.active {
-      background: var(--bg2);
+      background: var(--bg3);
       color: var(--text);
       font-weight: 500;
     }
@@ -414,8 +415,8 @@
     }
 
     .card {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
+      background: var(--bg3);
+      border: 1px solid var(--border);
       border-radius: var(--rad);
       padding: 1rem 1.1rem;
       margin-bottom: 12px;
@@ -434,7 +435,7 @@
     select,
     textarea {
       width: 100%;
-      background: var(--bg2);
+      background: var(--bg3);
       border: 0.5px solid var(--border);
       border-radius: var(--rad-sm);
       padding: 10px 12px;
@@ -505,7 +506,7 @@
     }
 
     .preview-box {
-      background: var(--bg2);
+      background: var(--bg3);
       border-radius: var(--rad);
       padding: 1rem;
       margin-bottom: 10px;
@@ -513,10 +514,11 @@
     }
 
     .inline-preview {
+      background: var(--bg3);
       border-radius: var(--rad-sm);
       padding: 1rem;
       margin-bottom: 10px;
-      border: 0.5px solid var(--border);
+      border: 1px solid var(--border2);
       display: none;
     }
 
@@ -600,11 +602,12 @@
     }
 
     .tbl-wrap {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
+      background: var(--bg3);
+      border: 1px solid var(--border);
       border-radius: var(--rad);
       overflow: hidden;
       margin-bottom: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
     }
 
     .tbl-scroll {
@@ -624,7 +627,7 @@
       text-align: left;
       padding: 8px 10px;
       border-bottom: 0.5px solid var(--border);
-      background: var(--bg2);
+      background: var(--bg3);
       white-space: nowrap;
     }
 
@@ -699,10 +702,11 @@
     }
 
     .insight-card {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
+      background: var(--bg2);
+      border: 1px solid var(--border);
       border-radius: var(--rad);
       padding: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
     }
 
     .wk-range {
@@ -730,7 +734,7 @@
     }
 
     .stat-card {
-      background: var(--bg2);
+      background: var(--bg3);
       border-radius: var(--rad-sm);
       padding: 0.75rem;
       text-align: center;
@@ -790,12 +794,14 @@
 
     .banner.danger {
       background: var(--red-bg);
-      border: 0.5px solid var(--red);
+      border-left: 3px solid var(--red);
+      border-top: none; border-right: none; border-bottom: none;
     }
 
     .banner.warn {
       background: var(--amber-bg);
-      border: 0.5px solid var(--amber);
+      border-left: 3px solid var(--amber);
+      border-top: none; border-right: none; border-bottom: none;
     }
 
     .banner.ok {
@@ -891,7 +897,7 @@
     }
 
     .report-hero-item {
-      background: var(--bg2);
+      background: var(--bg3);
       border-radius: var(--rad-sm);
       padding: 1rem;
       text-align: center;
@@ -939,7 +945,7 @@
       display: flex;
       gap: 4px;
       margin-bottom: 14px;
-      background: var(--bg2);
+      background: var(--bg3);
       border-radius: var(--rad-sm);
       padding: 4px;
     }
@@ -984,8 +990,7 @@
   <div id="loginScreen">
     <div class="login-box">
       <div class="login-logo">
-        <div class="iw" style="padding:2px;overflow:hidden"><img src="icons/icon-96x96.png"
-            style="width:100%;height:100%;object-fit:contain;border-radius:6px" alt="GasLedger" /></div>
+        <div class="iw" style="padding:2px;overflow:hidden"><img src="icons/icon-96x96.png" style="width:100%;height:100%;object-fit:contain;border-radius:6px" alt="GasLedger"/></div>
         <div>
           <h1>GasLedger</h1>
           <p>Sign in to access your records</p>
@@ -1018,8 +1023,7 @@
     <header>
       <div class="title-row">
         <div class="title-left">
-          <div class="iw" style="padding:2px;overflow:hidden"><img src="icons/icon-96x96.png"
-              style="width:100%;height:100%;object-fit:contain;border-radius:6px" alt="GasLedger" /></div>
+          <div class="iw" style="padding:2px;overflow:hidden"><img src="icons/icon-96x96.png" style="width:100%;height:100%;object-fit:contain;border-radius:6px" alt="GasLedger"/></div>
           <div>
             <h1>GasLedger</h1>
             <div class="hdr-sub">
@@ -1344,8 +1348,7 @@
           <div class="sec-hdr">
             <h2>Stock &amp; refill tracker</h2>
           </div>
-          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Each delivery starts a new stock period.
-            Remaining kg from previous delivery automatically carries forward into the new period.</p>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Each delivery starts a new stock period. Remaining kg from previous delivery automatically carries forward into the new period.</p>
           <div id="stockAlert" class="banner danger" style="display:none;margin-bottom:12px;">
             <i class="ti ti-alert-circle"></i>
             <p id="stockAlertMsg"></p>
@@ -1766,7 +1769,7 @@
       document.getElementById('livePct').textContent = pct.toFixed(1) + '%';
       var bar = document.getElementById('liveBar');
       bar.style.width = Math.min(pct, 100) + '%';
-      bar.style.background = pct > 80 ? '#E24B4A' : pct > 50 ? '#EF9F27' : '#1D9E75';
+      bar.style.background = pct > 80 ? '#E05C68' : '#F5A623';
       pr.style.display = 'block';
     }
 
@@ -2359,38 +2362,38 @@
       if (!stockRecs.length) return [];
 
       // Sort deliveries oldest → newest
-      var sorted = stockRecs.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-      var today = new Date().toISOString().slice(0, 10);
+      var sorted = stockRecs.slice().sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+      var today  = new Date().toISOString().slice(0,10);
       var periods = [];
 
-      sorted.forEach(function (delivery, idx) {
+      sorted.forEach(function(delivery, idx) {
         var periodStart = delivery.date;
-        var periodEnd = idx < sorted.length - 1 ? sorted[idx + 1].date : null; // null = open/current
+        var periodEnd   = idx < sorted.length - 1 ? sorted[idx+1].date : null; // null = open/current
 
         // Kg sold within this period's date range
-        var soldInPeriod = records.filter(function (r) {
+        var soldInPeriod = records.filter(function(r) {
           if (r.date < periodStart) return false;
           if (periodEnd && r.date >= periodEnd) return false;
           return true;
-        }).reduce(function (s, r) { return s + r.sold; }, 0);
+        }).reduce(function(s,r){ return s + r.sold; }, 0);
 
         // Carry-forward from previous period
-        var carriedIn = idx === 0 ? 0 : (periods[idx - 1].carriedOut || 0);
+        var carriedIn = idx === 0 ? 0 : (periods[idx-1].carriedOut || 0);
 
-        var available = delivery.kg + carriedIn;
-        var remaining = available - soldInPeriod;
+        var available  = delivery.kg + carriedIn;
+        var remaining  = available - soldInPeriod;
         var carriedOut = periodEnd ? Math.max(0, remaining) : null; // null = still active
 
         periods.push({
-          delivery: delivery,
+          delivery:    delivery,
           periodStart: periodStart,
-          periodEnd: periodEnd,
-          carriedIn: carriedIn,
-          available: available,
+          periodEnd:   periodEnd,
+          carriedIn:   carriedIn,
+          available:   available,
           soldInPeriod: soldInPeriod,
-          remaining: remaining,
-          carriedOut: carriedOut,
-          isCurrent: !periodEnd
+          remaining:   remaining,
+          carriedOut:  carriedOut,
+          isCurrent:   !periodEnd
         });
       });
 
@@ -2405,12 +2408,12 @@
 
     function renderStock() {
       var periods = buildStockPeriods();
-      var sumEl = document.getElementById('stockSummary');
+      var sumEl   = document.getElementById('stockSummary');
 
       if (periods.length) {
-        var current = periods[periods.length - 1];
-        var remaining = current.remaining;
-        var remCls = (stockThreshold > 0 && remaining <= stockThreshold) ? 'color:var(--red)' : 'color:var(--green)';
+        var current    = periods[periods.length - 1];
+        var remaining  = current.remaining;
+        var remCls     = (stockThreshold > 0 && remaining <= stockThreshold) ? 'color:var(--red)' : 'color:var(--green)';
 
         sumEl.innerHTML =
           '<div class="stat-card"><div class="lbl">Current period delivered</div><div class="val">' + N(current.delivery.kg, 1) + ' kg</div></div>' +
@@ -2423,7 +2426,7 @@
             '<div class="stat-card" style="grid-column:1/-1;background:var(--amber-bg);border:1px solid var(--amber)">' +
             '<div class="lbl" style="color:var(--amber-text)"><i class="ti ti-transfer-in" style="vertical-align:-2px;margin-right:4px;"></i>Carried forward from previous period</div>' +
             '<div class="val" style="color:var(--amber-text)">' + N(current.carriedIn, 1) + ' kg</div>' +
-            '<div style="font-size:11px;color:var(--amber-text);margin-top:2px;">Available this period: ' + N(current.available, 1) + ' kg (' + N(current.delivery.kg, 1) + ' delivered + ' + N(current.carriedIn, 1) + ' carried in)</div>' +
+            '<div style="font-size:11px;color:var(--amber-text);margin-top:2px;">Available this period: ' + N(current.available, 1) + ' kg (' + N(current.delivery.kg,1) + ' delivered + ' + N(current.carriedIn,1) + ' carried in)</div>' +
             '</div>';
           sumEl.style.gridTemplateColumns = 'repeat(3,1fr)';
         }
@@ -2441,7 +2444,7 @@
 
       var h = '';
       // Show newest first
-      periods.slice().reverse().forEach(function (p) {
+      periods.slice().reverse().forEach(function(p) {
         var r = p.delivery;
         var statusBadge = p.isCurrent
           ? '<span class="badge b-high" style="font-size:10px">Active</span>'
