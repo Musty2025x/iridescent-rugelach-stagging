@@ -1,0 +1,2794 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- PWA core -->
+  <meta name="application-name" content="GasLedger" />
+  <meta name="theme-color" content="#080F1E" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- iOS PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GasLedger" />
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144x144.png" />
+
+  <!-- Android / browser -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png" />
+
+  <!-- SEO / sharing -->
+  <meta name="description" content="Daily gas sales, cash reconciliation and accountability tracker." />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <title>GasLedger</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* ── GasLedger dark navy + amber theme ── */
+      --bg: #080F1E;
+      --bg2: #111827;
+      --bg3: #1A2235;
+      --text: #E8EFF8;
+      --text2: #8896A8;
+      --text3: #4A5E78;
+      --border: rgba(255, 255, 255, 0.08);
+      --border2: rgba(255, 255, 255, 0.15);
+      --rad: 14px;
+      --rad-sm: 10px;
+      /* accent */
+      --accent: #F5A623;
+      --accent-dark: #D4891A;
+      --accent-bg: rgba(245, 166, 35, 0.15);
+      --accent-text: #F5A623;
+      /* semantic */
+      --green: #2ECC71;
+      --green-bg: #0A2D1A;
+      --green-text: #A3E9C1;
+      --red: #E05C68;
+      --red-bg: #2D0A0F;
+      --red-text: #F4AABA;
+      --amber: #F5A623;
+      --amber-bg: rgba(245, 166, 35, 0.15);
+      --amber-text: #FAC675;
+      --blue: #4A9EF5;
+      --blue-bg: #0A1E3D;
+      --blue-text: #B5D4F4;
+      /* shadows */
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Force dark theme even on light-mode devices */
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #080F1E;
+        --bg2: #111827;
+        --bg3: #1A2235;
+        --text: #E8EFF8;
+        --text2: #8896A8;
+        --text3: #4A5E78;
+        --border: rgba(255, 255, 255, 0.08);
+        --border2: rgba(255, 255, 255, 0.15);
+        --green: #2ECC71;
+        --green-bg: #0A2D1A;
+        --green-text: #A3E9C1;
+        --red: #E05C68;
+        --red-bg: #2D0A0F;
+        --red-text: #F4AABA;
+        --amber: #F5A623;
+        --amber-bg: rgba(245, 166, 35, 0.15);
+        --amber-text: #FAC675;
+        --blue: #4A9EF5;
+        --blue-bg: #0A1E3D;
+        --blue-text: #B5D4F4;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color-scheme: dark;
+      background: var(--bg3);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 3rem;
+    }
+
+    /* LOGIN */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .login-box {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--rad);
+      padding: 2rem 1.5rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.75rem;
+    }
+
+    .login-logo .iw {
+      width: 44px;
+      height: 44px;
+      background: var(--accent-bg);
+      border-radius: var(--rad-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-logo .iw i {
+      font-size: 24px;
+      color: var(--accent);
+    }
+
+    .login-logo h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .login-logo p {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 2px;
+    }
+
+    .login-box label {
+      display: block;
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 6px;
+      margin-top: 14px;
+    }
+
+    .login-box input {
+      width: 100%;
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--rad-sm);
+      padding: 11px 12px;
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+
+    .login-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .pw-wrap {
+      position: relative;
+    }
+
+    .pw-wrap input {
+      padding-right: 44px;
+    }
+
+    .pw-eye {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .login-btn {
+      width: 100%;
+      background: var(--bg);
+      color: #fff;
+      border: none;
+      border-radius: var(--rad-sm);
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .login-btn:active {
+      opacity: 0.85;
+    }
+
+    .login-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .login-err {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border-radius: var(--rad-sm);
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* APP */
+    #appShell {
+      display: none;
+    }
+
+    #syncBar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 5px 1.25rem;
+      background: var(--bg2);
+      border-bottom: 0.5px solid var(--border);
+      color: var(--text2);
+    }
+
+    #syncDot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--amber);
+      flex-shrink: 0;
+    }
+
+    #syncDot.ok {
+      background: var(--bg);
+    }
+
+    #syncDot.err {
+      background: var(--red);
+    }
+
+    header {
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--border);
+      padding: 0.9rem 1.25rem 0.75rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .iw {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-bg);
+      border-radius: var(--rad-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .iw i {
+      font-size: 19px;
+      color: var(--accent);
+    }
+
+    header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .hdr-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 1px;
+    }
+
+    .hdr-sub span {
+      font-size: 11px;
+      color: var(--text2);
+    }
+
+    .role-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+
+    .role-admin {
+      background: var(--accent-bg);
+      color: var(--green-text);
+    }
+
+    .role-staff {
+      background: var(--blue-bg);
+      color: var(--blue-text);
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 0.5px solid var(--border2);
+      border-radius: var(--rad-sm);
+      padding: 5px 10px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    nav {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    nav button {
+      flex-shrink: 0;
+      background: transparent;
+      border: none;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--text2);
+      border-radius: var(--rad-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    nav button.active {
+      background: var(--bg2);
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .sec {
+      display: none;
+    }
+
+    .sec.show {
+      display: block;
+    }
+
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--rad);
+      padding: 1rem 1.1rem;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--rad-sm);
+      padding: 10px 12px;
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+      font-family: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 68px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--bg);
+      color: #fff;
+      border: none;
+      border-radius: var(--rad-sm);
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-primary:active {
+      opacity: 0.85;
+      transform: scale(0.99);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 0.5px solid var(--border2);
+      border-radius: var(--rad-sm);
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--text2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .preview-box {
+      background: var(--bg2);
+      border-radius: var(--rad);
+      padding: 1rem;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .inline-preview {
+      border-radius: var(--rad-sm);
+      padding: 1rem;
+      margin-bottom: 10px;
+      border: 0.5px solid var(--border);
+      display: none;
+    }
+
+    .metrics3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+
+    .mlbl {
+      font-size: 11px;
+      color: var(--text2);
+      margin-bottom: 3px;
+    }
+
+    .mval {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .mval.sm {
+      font-size: 14px;
+    }
+
+    .prog-wrap {
+      margin-top: 10px;
+    }
+
+    .prog-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+
+    .prog-track {
+      height: 6px;
+      background: var(--bg3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.3s, background 0.3s;
+    }
+
+    .alert {
+      border-radius: var(--rad-sm);
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .alert.error {
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    .alert.success {
+      background: var(--accent-bg);
+      color: var(--green-text);
+    }
+
+    .sec-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .sec-hdr h2 {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .tbl-wrap {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--rad);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .tbl-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text2);
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--bg2);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 9px 10px;
+      border-bottom: 0.5px solid var(--border);
+      color: var(--text);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text3);
+      font-size: 13px;
+    }
+
+    .empty i {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 99px;
+    }
+
+    .b-high {
+      background: var(--accent-bg);
+      color: var(--green-text);
+    }
+
+    .b-low {
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    .b-warn {
+      background: var(--amber-bg);
+      color: var(--amber-text);
+    }
+
+    .b-ok {
+      background: var(--accent-bg);
+      color: var(--green-text);
+    }
+
+    .flag-row td {
+      background: var(--red-bg) !important;
+      color: var(--red-text) !important;
+    }
+
+    .warn-row td {
+      background: var(--amber-bg) !important;
+      color: var(--amber-text) !important;
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .insight-card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--rad);
+      padding: 1rem;
+    }
+
+    .wk-range {
+      font-size: 11px;
+      color: var(--text2);
+      margin: 6px 0 3px;
+    }
+
+    .kg-val {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .isub {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 2px;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border-radius: var(--rad-sm);
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .stat-card .lbl {
+      font-size: 11px;
+      color: var(--text2);
+      margin-bottom: 4px;
+    }
+
+    .stat-card .val {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .stat-card .val.sm {
+      font-size: 13px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      margin-top: 1rem;
+    }
+
+    .del-btn {
+      background: transparent;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .del-btn:active {
+      color: var(--red);
+    }
+
+    .divider {
+      height: 0.5px;
+      background: var(--border);
+      margin: 1rem 0;
+    }
+
+    .banner {
+      border-radius: var(--rad);
+      padding: 1rem 1.1rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .banner.danger {
+      background: var(--red-bg);
+      border: 0.5px solid var(--red);
+    }
+
+    .banner.warn {
+      background: var(--amber-bg);
+      border: 0.5px solid var(--amber);
+    }
+
+    .banner.ok {
+      background: var(--accent-bg);
+      border: 0.5px solid var(--green);
+    }
+
+    .banner i {
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .banner.danger i,
+    .banner.danger p {
+      color: var(--red-text);
+    }
+
+    .banner.warn i,
+    .banner.warn p {
+      color: var(--amber-text);
+    }
+
+    .banner.ok i,
+    .banner.ok p {
+      color: var(--green-text);
+    }
+
+    .banner p {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* staff notice banner */
+    .staff-notice {
+      background: var(--blue-bg);
+      border: 0.5px solid var(--blue);
+      border-radius: var(--rad-sm);
+      padding: 9px 12px;
+      font-size: 12px;
+      color: var(--blue-text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spin {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    .spin.dark {
+      border-color: var(--border2);
+      border-top-color: var(--accent);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .preset-btn {
+      background: var(--bg);
+      border: 0.5px solid var(--border2);
+      border-radius: 99px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .preset-btn:active,
+    .preset-btn.active-preset {
+      background: var(--bg);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .report-hero {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .report-hero-item {
+      background: var(--bg2);
+      border-radius: var(--rad-sm);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .report-hero-item .lbl {
+      font-size: 11px;
+      color: var(--text2);
+      margin-bottom: 4px;
+    }
+
+    .report-hero-item .val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .report-hero-item .val.sm {
+      font-size: 16px;
+    }
+
+    .report-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 13px;
+    }
+
+    .report-row:last-child {
+      border-bottom: none;
+    }
+
+    .report-row .rl {
+      color: var(--text2);
+    }
+
+    .report-row .rv {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .sub-nav {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 14px;
+      background: var(--bg2);
+      border-radius: var(--rad-sm);
+      padding: 4px;
+    }
+
+    .sub-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 7px 8px;
+      font-size: 12px;
+      color: var(--text2);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .sub-btn.active {
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .sub-sec {
+      display: none;
+    }
+
+    .sub-sec.show {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="iw" style="padding:2px;overflow:hidden"><img src="icons/icon-96x96.png"
+            style="width:100%;height:100%;object-fit:contain;border-radius:6px" alt="GasLedger" /></div>
+        <div>
+          <h1>GasLedger</h1>
+          <p>Sign in to access your records</p>
+        </div>
+      </div>
+      <label for="loginEmail"><i class="ti ti-mail" style="vertical-align:-2px;margin-right:4px;"></i>Email</label>
+      <input type="text" id="loginEmail" placeholder="your@email.com" autocomplete="username" />
+      <label for="loginPw"><i class="ti ti-lock" style="vertical-align:-2px;margin-right:4px;"></i>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="loginPw" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter') doLogin()" />
+        <button class="pw-eye" onclick="togglePw()" tabindex="-1">
+          <i class="ti ti-eye" id="eyeIcon"></i>
+        </button>
+      </div>
+      <div class="login-err" id="loginErr"></div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">
+        <i class="ti ti-login"></i> Sign in
+      </button>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appShell">
+    <div id="syncBar">
+      <span id="syncDot"></span>
+      <span id="syncMsg">Connecting…</span>
+    </div>
+
+    <header>
+      <div class="title-row">
+        <div class="title-left">
+          <div class="iw" style="padding:2px;overflow:hidden"><img src="icons/icon-96x96.png"
+              style="width:100%;height:100%;object-fit:contain;border-radius:6px" alt="GasLedger" /></div>
+          <div>
+            <h1>GasLedger</h1>
+            <div class="hdr-sub">
+              <span id="userEmail"></span>
+              <span class="role-badge" id="roleBadge"></span>
+            </div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> Sign out</button>
+      </div>
+      <nav>
+        <button class="active" onclick="showTab('entry',this)"><i class="ti ti-plus"></i> Entry</button>
+        <button onclick="showTab('records',this)"><i class="ti ti-calendar"></i> Records</button>
+        <button onclick="showTab('money',this)"><i class="ti ti-cash"></i> Money</button>
+        <button onclick="showTab('stock',this)"><i class="ti ti-package"></i> Stock</button>
+        <button onclick="showTab('reports',this)"><i class="ti ti-file-analytics"></i> Reports</button>
+      </nav>
+    </header>
+
+    <main>
+
+      <!-- ENTRY -->
+      <div id="sec-entry" class="sec show">
+        <div class="card">
+          <label><i class="ti ti-calendar-event" style="vertical-align:-2px;margin-right:4px;"></i>Date</label>
+          <input type="date" id="entryDate" onchange="prefillOpeningMeter()" />
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <label><i class="ti ti-sun-rise" style="vertical-align:-2px;margin-right:4px;"></i>Opening meter (kg) <span
+                id="openAutoTag" style="font-size:11px;color:var(--accent);display:none;">— auto-filled</span></label>
+            <input type="number" id="entryOpen" placeholder="e.g. 1240" min="0" step="0.1" oninput="liveCalc()" />
+          </div>
+          <div class="card">
+            <label><i class="ti ti-moon" style="vertical-align:-2px;margin-right:4px;"></i>Closing meter (kg)</label>
+            <input type="number" id="entryClose" placeholder="e.g. 1560" min="0" step="0.1" oninput="liveCalc()" />
+          </div>
+        </div>
+        <div class="card">
+          <label><i class="ti ti-currency-naira" style="vertical-align:-2px;margin-right:4px;"></i>Price per kg
+            (&#8358;)</label>
+          <input type="number" id="entryPrice" placeholder="e.g. 1200" min="0" step="1" oninput="liveCalc()" />
+        </div>
+        <div class="preview-box" id="livePreview">
+          <div class="metrics3">
+            <div>
+              <div class="mlbl">Kg sold</div>
+              <div class="mval" id="liveKg">&#8212;</div>
+            </div>
+            <div>
+              <div class="mlbl">Expected cash</div>
+              <div class="mval sm" id="liveExp">&#8212;</div>
+            </div>
+            <div>
+              <div class="mlbl">Revenue</div>
+              <div class="mval sm" id="liveRev">&#8212;</div>
+            </div>
+          </div>
+          <div class="prog-wrap">
+            <div class="prog-head"><span>Today's sales</span><span id="livePct">0%</span></div>
+            <div class="prog-track">
+              <div class="prog-fill" id="liveBar" style="width:0%;background:var(--green);"></div>
+            </div>
+          </div>
+        </div>
+        <div class="alert error" id="entryAlert"></div>
+        <button class="btn-primary" id="saveEntryBtn" onclick="saveEntry()">
+          <i class="ti ti-device-floppy"></i> Save record
+        </button>
+      </div>
+
+      <!-- RECORDS GROUP: Daily | Weekly | Best/Worst -->
+      <div id="sec-records" class="sec">
+        <div class="sub-nav">
+          <button class="sub-btn active" onclick="showSub('records','daily',this)"><i class="ti ti-calendar"></i>
+            Daily</button>
+          <button class="sub-btn" onclick="showSub('records','weekly',this)"><i class="ti ti-chart-bar"></i>
+            Weekly</button>
+          <button class="sub-btn" onclick="showSub('records','insights',this)"><i class="ti ti-trophy"></i>
+            Best/Worst</button>
+        </div>
+
+        <div id="sub-records-daily" class="sub-sec show">
+          <div class="sec-hdr">
+            <h2>Daily history</h2>
+            <button class="btn-ghost admin-only" onclick="clearAll()" style="display:none;"><i class="ti ti-trash"></i>
+              Clear all</button>
+          </div>
+          <div class="tbl-wrap">
+            <div class="tbl-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Open (m)</th>
+                    <th>Close (m)</th>
+                    <th>Sold kg</th>
+                    <th>&#8358;/kg</th>
+                    <th>Revenue</th>
+                    <th class="admin-only" style="display:none;"></th>
+                    <th class="admin-only" style="display:none;"></th>
+                  </tr>
+                </thead>
+                <tbody id="dailyBody">
+                  <tr>
+                    <td colspan="7">
+                      <div class="empty"><span class="spin dark"></span></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="sub-records-weekly" class="sub-sec">
+          <div class="sec-hdr">
+            <h2>Weekly summary</h2>
+          </div>
+          <div class="tbl-wrap">
+            <div class="tbl-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Week</th>
+                    <th>Days</th>
+                    <th>Total kg</th>
+                    <th>Revenue</th>
+                    <th>Avg/day</th>
+                  </tr>
+                </thead>
+                <tbody id="weeklyBody">
+                  <tr>
+                    <td colspan="5">
+                      <div class="empty"><span class="spin dark"></span></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="weekChart" role="img" aria-label="Weekly kg sold bar chart">Weekly sales bar chart.</canvas>
+          </div>
+        </div>
+
+        <div id="sub-records-insights" class="sub-sec">
+          <div class="sec-hdr">
+            <h2>Best &amp; worst week</h2>
+          </div>
+          <div id="insightsContent">
+            <div class="empty"><span class="spin dark"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MONEY GROUP: Cash & POS | Expenses -->
+      <div id="sec-money" class="sec">
+        <div class="sub-nav">
+          <button class="sub-btn active" onclick="showSub('money','cash',this)"><i class="ti ti-cash"></i> Cash &amp;
+            POS</button>
+          <button class="sub-btn" onclick="showSub('money','expenses',this)"><i class="ti ti-receipt"></i>
+            Expenses</button>
+        </div>
+
+        <div id="sub-money-cash" class="sub-sec show">
+          <div class="sec-hdr">
+            <h2>Cash &amp; POS remittance</h2>
+          </div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Enter daily cash and POS remittances. Total
+            is automatically compared against expected revenue from the meter.</p>
+          <div class="card">
+            <label><i class="ti ti-calendar-event" style="vertical-align:-2px;margin-right:4px;"></i>Date</label>
+            <input type="date" id="cashDate" onchange="prefillExpected()" />
+          </div>
+          <div class="card">
+            <label>Expected total (&#8358;) <span style="font-size:11px;color:var(--text3);">— auto-filled from meter
+                entry</span></label>
+            <input type="number" id="cashExpected" placeholder="Auto-filled" min="0" step="1" oninput="cashCalc()" />
+          </div>
+          <div class="grid2">
+            <div class="card">
+              <label><i class="ti ti-banknote" style="vertical-align:-2px;margin-right:4px;"></i>Cash remittance
+                (&#8358;)</label>
+              <input type="number" id="cashCash" placeholder="e.g. 200000" min="0" step="1" oninput="cashCalc()" />
+            </div>
+            <div class="card">
+              <label><i class="ti ti-credit-card" style="vertical-align:-2px;margin-right:4px;"></i>POS remittance
+                (&#8358;)</label>
+              <input type="number" id="cashPos" placeholder="e.g. 174000" min="0" step="1" oninput="cashCalc()" />
+            </div>
+          </div>
+          <div class="card">
+            <label>Note <span style="font-size:11px;color:var(--text3);">(optional)</span></label>
+            <textarea id="cashNote" placeholder="e.g. POS network issue, some payments delayed…"></textarea>
+          </div>
+          <div class="inline-preview" id="cashPreview">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;text-align:center;margin-bottom:10px;">
+              <div style="background:var(--bg3);border-radius:var(--rad-sm);padding:8px;">
+                <div class="mlbl">Cash</div>
+                <div class="mval sm" id="cCashOut">&#8212;</div>
+              </div>
+              <div style="background:var(--bg3);border-radius:var(--rad-sm);padding:8px;">
+                <div class="mlbl">POS</div>
+                <div class="mval sm" id="cPosOut">&#8212;</div>
+              </div>
+            </div>
+            <div class="metrics3">
+              <div>
+                <div class="mlbl">Expected</div>
+                <div class="mval sm" id="cExpOut">&#8212;</div>
+              </div>
+              <div>
+                <div class="mlbl">Total received</div>
+                <div class="mval sm" id="cActOut">&#8212;</div>
+              </div>
+              <div>
+                <div class="mlbl">Difference</div>
+                <div class="mval sm" id="cDiffOut">&#8212;</div>
+              </div>
+            </div>
+            <p id="cStatusMsg" style="font-size:13px;font-weight:500;text-align:center;margin-top:10px;"></p>
+          </div>
+          <div class="alert error" id="cashAlert"></div>
+          <button class="btn-primary" id="saveCashBtn" onclick="saveCash()"><i class="ti ti-device-floppy"></i> Save
+            remittance record</button>
+          <div class="divider"></div>
+          <div class="sec-hdr">
+            <h2 style="font-size:14px;">Remittance history</h2>
+          </div>
+          <div class="tbl-wrap">
+            <div class="tbl-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Expected</th>
+                    <th>Cash</th>
+                    <th>POS</th>
+                    <th>Total</th>
+                    <th>Diff</th>
+                    <th>Status</th>
+                    <th class="admin-only" style="display:none;"></th>
+                    <th class="admin-only" style="display:none;"></th>
+                  </tr>
+                </thead>
+                <tbody id="cashBody">
+                  <tr>
+                    <td colspan="8">
+                      <div class="empty"><span class="spin dark"></span></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="sub-money-expenses" class="sub-sec">
+          <div class="sec-hdr">
+            <h2>Expense tracker</h2>
+          </div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Log daily running costs. Used in profit
+            calculation on the Reports tab.</p>
+          <div class="card">
+            <label><i class="ti ti-calendar-event" style="vertical-align:-2px;margin-right:4px;"></i>Date</label>
+            <input type="date" id="expDate" />
+          </div>
+          <div class="grid2">
+            <div class="card">
+              <label>Category</label>
+              <select id="expCategory">
+                <option value="fuel">Generator fuel</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="salary">Salary / wages</option>
+                <option value="transport">Transport</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="card">
+              <label>Amount (&#8358;)</label>
+              <input type="number" id="expAmount" placeholder="e.g. 15000" min="0" step="1" />
+            </div>
+          </div>
+          <div class="card">
+            <label>Description <span style="font-size:11px;color:var(--text3);">(optional)</span></label>
+            <input type="text" id="expDesc" placeholder="e.g. Petrol for generator" />
+          </div>
+          <div class="alert error" id="expAlert"></div>
+          <button class="btn-primary" id="saveExpBtn" onclick="saveExpense()"><i class="ti ti-device-floppy"></i> Save
+            expense</button>
+          <div class="divider"></div>
+          <div id="expSummary" style="margin-bottom:12px;"></div>
+          <div class="tbl-wrap">
+            <div class="tbl-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th class="admin-only" style="display:none;"></th>
+                  </tr>
+                </thead>
+                <tbody id="expBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STOCK GROUP: Stock/Refill | Prices -->
+      <div id="sec-stock" class="sec">
+        <div class="sub-nav">
+          <button class="sub-btn active" onclick="showSub('stock','refill',this)"><i class="ti ti-package"></i>
+            Deliveries</button>
+          <button class="sub-btn" onclick="showSub('stock','prices',this)"><i class="ti ti-tag"></i> Prices</button>
+        </div>
+
+        <div id="sub-stock-refill" class="sub-sec show">
+          <div class="sec-hdr">
+            <h2>Stock &amp; refill tracker</h2>
+          </div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Each delivery starts a new stock period.
+            Remaining kg from previous delivery automatically carries forward into the new period.</p>
+          <div id="stockAlert" class="banner danger" style="display:none;margin-bottom:12px;">
+            <i class="ti ti-alert-circle"></i>
+            <p id="stockAlertMsg"></p>
+          </div>
+          <div id="stockSummary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+          </div>
+          <div class="card">
+            <label><i class="ti ti-calendar-event" style="vertical-align:-2px;margin-right:4px;"></i>Delivery
+              date</label>
+            <input type="date" id="stockDate" />
+          </div>
+          <div class="grid2">
+            <div class="card">
+              <label>Supplier name</label>
+              <input type="text" id="stockSupplier" placeholder="e.g. ABC Gas Ltd" />
+            </div>
+            <div class="card">
+              <label>Kg received</label>
+              <input type="number" id="stockKg" placeholder="e.g. 1000" min="0" step="0.1" />
+            </div>
+          </div>
+          <div class="card">
+            <label>Cost price per kg (&#8358;)</label>
+            <input type="number" id="stockCost" placeholder="e.g. 800" min="0" step="1" />
+          </div>
+          <div class="alert error" id="stockFormAlert"></div>
+          <button class="btn-primary" id="saveStockBtn" onclick="saveStock()"><i class="ti ti-device-floppy"></i> Save
+            Delivery</button>
+          <div class="divider"></div>
+          <div class="sec-hdr">
+            <h2 style="font-size:14px;">Delivery history</h2>
+          </div>
+          <div class="tbl-wrap">
+            <div class="tbl-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th>Delivered</th>
+                    <th>Carried in</th>
+                    <th>Available</th>
+                    <th>Sold</th>
+                    <th>Carried out</th>
+                    <th>Status</th>
+                    <th class="admin-only" style="display:none;"></th>
+                  </tr>
+                </thead>
+                <tbody id="stockBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="margin-top:4px;">
+            <label style="font-size:12px;color:var(--text2);margin-bottom:8px;"><i class="ti ti-bell"
+                style="vertical-align:-2px;margin-right:4px;"></i>Low stock alert threshold (kg)</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="number" id="stockThreshold" placeholder="e.g. 500" min="0" step="1" style="flex:1;" />
+              <button class="btn-primary" style="width:auto;margin-top:0;padding:10px 16px;"
+                onclick="saveThreshold()">Save</button>
+            </div>
+            <p style="font-size:11px;color:var(--text3);margin-top:6px;">A warning appears when remaining stock drops
+              below this number.</p>
+          </div>
+        </div>
+
+        <div id="sub-stock-prices" class="sub-sec">
+          <div class="sec-hdr">
+            <h2>Price history</h2>
+          </div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Log every price change. The Entry tab
+            auto-fills the current price from the most recent record here.</p>
+          <div class="grid2">
+            <div class="card">
+              <label><i class="ti ti-calendar-event" style="vertical-align:-2px;margin-right:4px;"></i>Effective
+                date</label>
+              <input type="date" id="priceDate" />
+            </div>
+            <div class="card">
+              <label>Price per kg (&#8358;)</label>
+              <input type="number" id="priceAmount" placeholder="e.g. 1200" min="0" step="1" />
+            </div>
+          </div>
+          <div class="card">
+            <label>Note <span style="font-size:11px;color:var(--text3);">(optional)</span></label>
+            <input type="text" id="priceNote" placeholder="e.g. Supplier price increase" />
+          </div>
+          <div class="alert error" id="priceAlert"></div>
+          <button class="btn-primary" id="savePriceBtn" onclick="savePrice()"><i class="ti ti-device-floppy"></i> Save
+            price</button>
+          <div id="currentPrice" style="margin-top:12px;"></div>
+          <div class="divider"></div>
+          <div class="tbl-wrap">
+            <div class="tbl-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Effective date</th>
+                    <th>Price/kg</th>
+                    <th>Note</th>
+                    <th class="admin-only" style="display:none;"></th>
+                  </tr>
+                </thead>
+                <tbody id="priceBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS GROUP: Monthly | Date Range | Variance -->
+      <div id="sec-reports" class="sec">
+        <div class="sub-nav">
+          <button class="sub-btn active" onclick="showSub('reports','monthly',this)"><i
+              class="ti ti-calendar-stats"></i> Monthly</button>
+          <button class="sub-btn" onclick="showSub('reports','report',this)"><i class="ti ti-file-analytics"></i>
+            Range</button>
+          <button class="sub-btn" onclick="showSub('reports','variance',this)"><i class="ti ti-alert-triangle"></i>
+            Variance</button>
+        </div>
+
+        <div id="sub-reports-monthly" class="sub-sec show">
+          <div class="sec-hdr">
+            <h2>Monthly summary</h2>
+          </div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">End-of-month totals — kg sold, revenue, cash,
+            POS and payments per month.</p>
+          <div id="monthlyContent">
+            <div class="empty"><span class="spin dark"></span></div>
+          </div>
+        </div>
+
+        <div id="sub-reports-report" class="sub-sec">
+          <div class="sec-hdr">
+            <h2>Date range report</h2>
+          </div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Select any date range to get a full breakdown
+            of kg sold, revenue, cash, POS, profit and variance.</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="preset-btn" onclick="setPreset('today')">Today</button>
+            <button class="preset-btn" onclick="setPreset('week')">This week</button>
+            <button class="preset-btn" onclick="setPreset('month')">This month</button>
+            <button class="preset-btn" onclick="setPreset('last7')">Last 7 days</button>
+            <button class="preset-btn" onclick="setPreset('last30')">Last 30 days</button>
+            <button class="preset-btn" onclick="setPreset('lastmonth')">Last month</button>
+          </div>
+          <div class="grid2">
+            <div class="card">
+              <label><i class="ti ti-calendar-event" style="vertical-align:-2px;margin-right:4px;"></i>From date</label>
+              <input type="date" id="reportFrom" onchange="runReport()" />
+            </div>
+            <div class="card">
+              <label><i class="ti ti-calendar-event" style="vertical-align:-2px;margin-right:4px;"></i>To date</label>
+              <input type="date" id="reportTo" onchange="runReport()" />
+            </div>
+          </div>
+          <div id="reportResult"></div>
+        </div>
+
+        <div id="sub-reports-variance" class="sub-sec">
+          <div class="sec-hdr">
+            <h2>Variance log</h2>
+          </div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Auto-generated. Flags every day where kg sold
+            from the meter does not match cash handed in.</p>
+          <div id="varianceContent">
+            <div class="empty"><span class="spin dark"></span></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    /* ── FIREBASE ── */
+    firebase.initializeApp({
+      apiKey: "AIzaSyBbM_t2AVcvqvTRj4uU6EALhHq3h7dIazU",
+      authDomain: "gas-plant-tracker.firebaseapp.com",
+      projectId: "gas-plant-tracker",
+      storageBucket: "gas-plant-tracker.firebasestorage.app",
+      messagingSenderId: "479602328706",
+      appId: "1:479602328706:web:b9fe24350b3807a242e09b",
+      measurementId: "G-WWVSRCHEV8"
+    });
+    var auth = firebase.auth();
+    var db = firebase.firestore();
+
+    var ADMIN_UID = 'NTSy443lZGNcocmWr4J8Dms8G463';
+    var COL_REC = 'dailyRecords';
+    var COL_CASH = 'cashRecords';
+    var COL_STOCK = 'stockRecords';
+    var COL_EXP = 'expenseRecords';
+    var COL_PRICE = 'priceRecords';
+    var COL_SETTINGS = 'settings';
+
+    var records = [];
+    var cashRecs = [];
+    var stockRecs = [];
+    var expRecs = [];
+    var priceRecs = [];
+    var stockThreshold = 0;
+    var isAdmin = false;
+    var activeTab = 'entry';
+    var weekChartInst = null;
+    var unsubRec = null;
+    var unsubCash = null;
+
+    /* ── AUTH STATE ── */
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        isAdmin = user.uid === ADMIN_UID;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appShell').style.display = 'block';
+        document.getElementById('userEmail').textContent = user.email;
+
+        var badge = document.getElementById('roleBadge');
+        badge.textContent = isAdmin ? 'Admin' : 'Staff';
+        badge.className = 'role-badge ' + (isAdmin ? 'role-admin' : 'role-staff');
+
+        /* show/hide all admin-only elements */
+        document.querySelectorAll('.admin-only').forEach(function (el) {
+          el.style.display = isAdmin ? '' : 'none';
+        });
+
+        startListeners();
+        var today = new Date().toISOString().slice(0, 10);
+        document.getElementById('entryDate').value = today;
+        document.getElementById('cashDate').value = today;
+        document.getElementById('stockDate').value = today;
+        document.getElementById('expDate').value = today;
+        document.getElementById('priceDate').value = today;
+        setTimeout(prefillOpeningMeter, 800);
+      } else {
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('appShell').style.display = 'none';
+        if (unsubRec) { unsubRec(); unsubRec = null; }
+        if (unsubCash) { unsubCash(); unsubCash = null; }
+        records = []; cashRecs = []; isAdmin = false;
+      }
+    });
+
+    /* ── LOGIN / LOGOUT ── */
+    function doLogin() {
+      var email = document.getElementById('loginEmail').value.trim();
+      var pw = document.getElementById('loginPw').value;
+      var btn = document.getElementById('loginBtn');
+      var err = document.getElementById('loginErr');
+      if (!email || !pw) { showLoginErr('Please enter your email and password.'); return; }
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin"></span> Signing in…';
+      err.style.display = 'none';
+      auth.signInWithEmailAndPassword(email, pw).catch(function (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-login"></i> Sign in';
+        var msg = (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found')
+          ? 'Incorrect email or password. Please try again.'
+          : e.code === 'auth/too-many-requests'
+            ? 'Too many failed attempts. Please wait and try again.'
+            : 'Sign in failed: ' + e.message;
+        showLoginErr(msg);
+      });
+    }
+    function doLogout() {
+      if (confirm('Sign out of GasLedger?')) auth.signOut();
+    }
+    function showLoginErr(msg) {
+      var el = document.getElementById('loginErr');
+      el.textContent = msg; el.style.display = 'block';
+    }
+    function togglePw() {
+      var inp = document.getElementById('loginPw'), icon = document.getElementById('eyeIcon');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      icon.className = inp.type === 'password' ? 'ti ti-eye' : 'ti ti-eye-off';
+    }
+
+    /* ── LISTENERS ── */
+    function startListeners() {
+      syncStatus('', 'Connecting to cloud…');
+      unsubRec = db.collection(COL_REC).orderBy('date').onSnapshot(function (snap) {
+        records = [];
+        snap.forEach(function (doc) { records.push(Object.assign({ _id: doc.id }, doc.data())); });
+        syncStatus('ok', 'Cloud synced \u2014 ' + records.length + ' record' + (records.length !== 1 ? 's' : ''));
+        checkLowStock();
+        refreshActive();
+      }, function (err) { syncStatus('err', 'Sync error: ' + err.message); });
+
+      unsubCash = db.collection(COL_CASH).orderBy('date').onSnapshot(function (snap) {
+        cashRecs = [];
+        snap.forEach(function (doc) { cashRecs.push(Object.assign({ _id: doc.id }, doc.data())); });
+        refreshActive();
+      }, function () { });
+
+      db.collection(COL_STOCK).orderBy('date').onSnapshot(function (snap) {
+        stockRecs = [];
+        snap.forEach(function (doc) { stockRecs.push(Object.assign({ _id: doc.id }, doc.data())); });
+        checkLowStock();
+        refreshActive();
+      }, function () { });
+
+      db.collection(COL_EXP).orderBy('date').onSnapshot(function (snap) {
+        expRecs = [];
+        snap.forEach(function (doc) { expRecs.push(Object.assign({ _id: doc.id }, doc.data())); });
+        refreshActive();
+      }, function () { });
+
+      db.collection(COL_PRICE).orderBy('date').onSnapshot(function (snap) {
+        priceRecs = [];
+        snap.forEach(function (doc) { priceRecs.push(Object.assign({ _id: doc.id }, doc.data())); });
+        autofillCurrentPrice();
+        refreshActive();
+      }, function () { });
+
+      db.collection(COL_SETTINGS).doc('lowstock').get().then(function (doc) {
+        if (doc.exists) {
+          stockThreshold = doc.data().threshold || 0;
+          var el = document.getElementById('stockThreshold');
+          if (el) el.value = stockThreshold;
+        }
+      });
+    }
+
+    function syncStatus(state, msg) {
+      document.getElementById('syncDot').className = state;
+      document.getElementById('syncMsg').textContent = msg;
+    }
+    function refreshActive() {
+      var activeGroup = document.querySelector('.sec.show');
+      if (!activeGroup) return;
+      var activeSub = activeGroup.querySelector('.sub-sec.show');
+      if (activeSub) {
+        var sub = activeSub.id.split('-').pop();
+        var fn = { daily: renderDaily, weekly: renderWeekly, insights: renderInsights, cash: renderCash, expenses: renderExpenses, refill: renderStock, prices: renderPrices, monthly: renderMonthly, report: runReport, variance: renderVariance };
+        if (fn[sub]) fn[sub]();
+      }
+    }
+
+    /* ── HELPERS ── */
+    function N(n, d) { d = d === undefined ? 2 : d; return parseFloat(n).toLocaleString('en-NG', { maximumFractionDigits: d }); }
+    function M(n) { return '\u20a6' + parseFloat(n).toLocaleString('en-NG', { maximumFractionDigits: 0 }); }
+    function D(s) { return new Date(s + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    function wkKey(s) {
+      var d = new Date(s + 'T00:00:00'), dy = d.getDay(), diff = d.getDate() - dy + (dy === 0 ? -6 : 1), m = new Date(d);
+      m.setDate(diff); return m.toISOString().slice(0, 10);
+    }
+    function wkLbl(k) {
+      var d = new Date(k + 'T00:00:00'), e = new Date(k + 'T00:00:00'); e.setDate(e.getDate() + 6);
+      var o = { day: 'numeric', month: 'short' };
+      return d.toLocaleDateString('en-GB', o) + ' \u2013 ' + e.toLocaleDateString('en-GB', o);
+    }
+    function flash(id, msg, type) {
+      var el = document.getElementById(id);
+      el.className = 'alert ' + (type || 'error'); el.textContent = msg; el.style.display = 'block';
+      if (type === 'success') setTimeout(function () { el.style.display = 'none'; }, 2600);
+    }
+    function setBusy(id, busy) {
+      var btn = document.getElementById(id); if (!btn) return;
+      btn.disabled = busy;
+      if (busy) { btn.dataset.orig = btn.innerHTML; btn.innerHTML = '<span class="spin"></span> Saving…'; }
+      else { btn.innerHTML = btn.dataset.orig || btn.innerHTML; }
+    }
+
+    /* ── NAVIGATION ── */
+    function showTab(name, btn) {
+      document.querySelectorAll('.sec').forEach(function (s) { s.classList.remove('show'); });
+      document.querySelectorAll('nav button').forEach(function (b) { b.classList.remove('active'); });
+      document.getElementById('sec-' + name).classList.add('show');
+      if (btn) btn.classList.add('active');
+      activeTab = name;
+      var groupEl = document.getElementById('sec-' + name);
+      if (!groupEl) return;
+      var activeSub = groupEl.querySelector('.sub-sec.show');
+      if (activeSub) {
+        var sub = activeSub.id.split('-').pop();
+        var fn = { daily: renderDaily, weekly: renderWeekly, insights: renderInsights, cash: renderCash, expenses: renderExpenses, refill: renderStock, prices: renderPrices, monthly: renderMonthly, report: runReport, variance: renderVariance };
+        if (fn[sub]) fn[sub]();
+      }
+    }
+
+    function showSub(group, sub, btn) {
+      var groupEl = document.getElementById('sec-' + group);
+      groupEl.querySelectorAll('.sub-sec').forEach(function (s) { s.classList.remove('show'); });
+      groupEl.querySelectorAll('.sub-btn').forEach(function (b) { b.classList.remove('active'); });
+      document.getElementById('sub-' + group + '-' + sub).classList.add('show');
+      if (btn) btn.classList.add('active');
+      var fn = { daily: renderDaily, weekly: renderWeekly, insights: renderInsights, cash: renderCash, expenses: renderExpenses, refill: renderStock, prices: renderPrices, monthly: renderMonthly, report: runReport, variance: renderVariance };
+      if (fn[sub]) fn[sub]();
+    }
+
+    /* ── ENTRY ── */
+    function prefillOpeningMeter() {
+      var date = document.getElementById('entryDate').value;
+      if (!date) return;
+      var prev = records.filter(function (r) { return r.date < date; });
+      var tag = document.getElementById('openAutoTag');
+      if (prev.length) {
+        var last = prev[prev.length - 1];
+        document.getElementById('entryOpen').value = last.close;
+        tag.style.display = 'inline';
+      } else {
+        tag.style.display = 'none';
+      }
+      /* also auto-fill current price from price history */
+      autofillCurrentPrice();
+      liveCalc();
+    }
+    function liveCalc() {
+      var o = parseFloat(document.getElementById('entryOpen').value);
+      var c = parseFloat(document.getElementById('entryClose').value);
+      var p = parseFloat(document.getElementById('entryPrice').value);
+      var pr = document.getElementById('livePreview');
+      document.getElementById('entryAlert').style.display = 'none';
+      if (isNaN(o) || isNaN(c) || isNaN(p)) { pr.style.display = 'none'; return; }
+      if (c < o) { pr.style.display = 'none'; flash('entryAlert', 'Closing meter must be higher than opening — meter increases as gas is sold.', 'error'); return; }
+      var sold = c - o, rev = sold * p, pct = c > 0 ? (sold / c) * 100 : 0;
+      document.getElementById('liveKg').textContent = N(sold, 1) + ' kg';
+      document.getElementById('liveExp').textContent = M(rev);
+      document.getElementById('liveRev').textContent = M(rev);
+      document.getElementById('livePct').textContent = pct.toFixed(1) + '%';
+      var bar = document.getElementById('liveBar');
+      bar.style.width = Math.min(pct, 100) + '%';
+      bar.style.background = pct > 80 ? '#E24B4A' : pct > 50 ? '#EF9F27' : '#1D9E75';
+      pr.style.display = 'block';
+    }
+
+    function saveEntry() {
+      var date = document.getElementById('entryDate').value;
+      var o = parseFloat(document.getElementById('entryOpen').value);
+      var c = parseFloat(document.getElementById('entryClose').value);
+      var p = parseFloat(document.getElementById('entryPrice').value);
+      if (!date) { flash('entryAlert', 'Please select a date.', 'error'); return; }
+      if (isNaN(o) || isNaN(c) || isNaN(p)) { flash('entryAlert', 'Please fill in all fields.', 'error'); return; }
+      if (c < o) { flash('entryAlert', 'Closing meter must be higher than opening.', 'error'); return; }
+      if (o < 0 || c < 0 || p < 0) { flash('entryAlert', 'Values cannot be negative.', 'error'); return; }
+      setBusy('saveEntryBtn', true);
+      db.collection(COL_REC).doc(date).set({ date: date, open: o, close: c, price: p, sold: c - o, revenue: (c - o) * p })
+        .then(function () {
+          setBusy('saveEntryBtn', false);
+          ['entryOpen', 'entryClose', 'entryPrice'].forEach(function (id) { document.getElementById(id).value = ''; });
+          document.getElementById('livePreview').style.display = 'none';
+          flash('entryAlert', 'Record saved to cloud!', 'success');
+        })
+        .catch(function (err) { setBusy('saveEntryBtn', false); flash('entryAlert', 'Save failed: ' + err.message, 'error'); });
+    }
+
+    /* ── DELETE (admin only) ── */
+    function delRecord(date) {
+      if (!isAdmin) { alert('Only the admin can delete records.'); return; }
+      if (!confirm('Delete record for ' + D(date) + '?\nThis will remove it from the cloud permanently.')) return;
+      db.collection(COL_REC).doc(date).delete().catch(function (e) { alert('Delete failed: ' + e.message); });
+    }
+    function clearAll() {
+      if (!isAdmin) { alert('Only the admin can delete records.'); return; }
+      if (!confirm('Delete ALL daily records from the cloud?\nThis cannot be undone.')) return;
+      var batch = db.batch();
+      records.forEach(function (r) { batch.delete(db.collection(COL_REC).doc(r.date)); });
+      batch.commit().catch(function (e) { alert('Clear failed: ' + e.message); });
+    }
+    function delCash(date) {
+      if (!isAdmin) { alert('Only the admin can delete records.'); return; }
+      if (!confirm('Delete cash record for ' + D(date) + '?\nThis will remove it from the cloud permanently.')) return;
+      db.collection(COL_CASH).doc(date).delete().catch(function (e) { alert('Delete failed: ' + e.message); });
+    }
+
+    /* ── DAILY ── */
+    function editRecord(date) {
+      if (!isAdmin) { return; }
+      var r = records.find(function (r) { return r.date === date; });
+      if (!r) return;
+      /* switch to entry tab and pre-fill all fields */
+      document.querySelectorAll('.sec').forEach(function (s) { s.classList.remove('show'); });
+      document.querySelectorAll('nav button').forEach(function (b) { b.classList.remove('active'); });
+      document.getElementById('sec-entry').classList.add('show');
+      var entryBtn = document.querySelector('nav button[onclick*="entry"]'); if (entryBtn) entryBtn.classList.add('active');
+      activeTab = 'entry';
+      document.getElementById('entryDate').value = r.date;
+      document.getElementById('entryOpen').value = r.open;
+      document.getElementById('entryClose').value = r.close;
+      document.getElementById('entryPrice').value = r.price;
+      document.getElementById('openAutoTag').style.display = 'none';
+      /* show editing banner */
+      var alertEl = document.getElementById('entryAlert');
+      alertEl.className = 'alert success';
+      alertEl.innerHTML = '<i class="ti ti-edit" style="vertical-align:-2px;margin-right:4px;"></i>Editing record for <strong>' + D(date) + '</strong> — make your changes and save.';
+      alertEl.style.display = 'block';
+      liveCalc();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function renderDaily() {
+      var tb = document.getElementById('dailyBody');
+      var cols = isAdmin ? 8 : 6;
+      if (!records.length) {
+        tb.innerHTML = '<tr><td colspan="' + cols + '"><div class="empty"><i class="ti ti-clipboard-list"></i>No records yet. Add your first entry.</div></td></tr>';
+        return;
+      }
+      var h = '';
+      records.slice().reverse().forEach(function (r) {
+        h += '<tr>' +
+          '<td style="white-space:nowrap;">' + D(r.date) + '</td>' +
+          '<td>' + N(r.open, 1) + '</td>' +
+          '<td>' + N(r.close, 1) + '</td>' +
+          '<td style="font-weight:500;">' + N(r.sold, 1) + '</td>' +
+          '<td>' + N(r.price, 0) + '</td>' +
+          '<td style="font-weight:500;white-space:nowrap;">' + M(r.revenue) + '</td>' +
+          (isAdmin ?
+            '<td><button class="del-btn" onclick="editRecord(\'' + r.date + '\')" title="Edit"><i class="ti ti-edit" style="color:var(--blue);"></i></button></td>' +
+            '<td><button class="del-btn" onclick="delRecord(\'' + r.date + '\')" title="Delete"><i class="ti ti-trash"></i></button></td>'
+            : '') +
+          '</tr>';
+      });
+      tb.innerHTML = h;
+    }
+
+    /* ── WEEKLY ── */
+    function wklyData() {
+      var wks = {};
+      records.forEach(function (r) {
+        var k = wkKey(r.date);
+        if (!wks[k]) wks[k] = { key: k, days: 0, sold: 0, revenue: 0 };
+        wks[k].days++; wks[k].sold += r.sold; wks[k].revenue += r.revenue;
+      });
+      return Object.values(wks).sort(function (a, b) { return a.key < b.key ? -1 : 1; });
+    }
+    function renderWeekly() {
+      var data = wklyData(), tb = document.getElementById('weeklyBody');
+      if (!data.length) {
+        tb.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-chart-bar"></i>No weekly data yet.</div></td></tr>';
+        if (weekChartInst) { weekChartInst.destroy(); weekChartInst = null; } return;
+      }
+      var h = '';
+      data.slice().reverse().forEach(function (w) {
+        var avg = w.days > 0 ? w.sold / w.days : 0;
+        h += '<tr>' +
+          '<td style="white-space:nowrap;">' + wkLbl(w.key) + '</td>' +
+          '<td>' + w.days + '</td>' +
+          '<td style="font-weight:500;">' + N(w.sold, 1) + ' kg</td>' +
+          '<td style="font-weight:500;white-space:nowrap;">' + M(w.revenue) + '</td>' +
+          '<td>' + N(avg, 1) + ' kg</td></tr>';
+      });
+      tb.innerHTML = h;
+      var labels = data.map(function (w) { return wkLbl(w.key); });
+      var vals = data.map(function (w) { return Math.round(w.sold * 10) / 10; });
+      var ctx = document.getElementById('weekChart').getContext('2d');
+      if (weekChartInst) weekChartInst.destroy();
+      var dk = window.matchMedia('(prefers-color-scheme:dark)').matches;
+      weekChartInst = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels, datasets: [{ label: 'Kg sold', data: vals, backgroundColor: '#F5A623', borderColor: '#D4891A', borderWidth: 1, borderRadius: 4 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { autoSkip: false, maxRotation: 45, font: { size: 10 }, color: dk ? '#a8a49e' : '#5f5e5a' }, grid: { display: false } },
+            y: { ticks: { font: { size: 11 }, color: dk ? '#a8a49e' : '#5f5e5a' }, beginAtZero: true, grid: { color: dk ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' } }
+          }
+        }
+      });
+    }
+
+    /* ── INSIGHTS ── */
+    function renderInsights() {
+      var data = wklyData(), el = document.getElementById('insightsContent');
+      if (data.length < 2) {
+        el.innerHTML = '<div class="empty"><i class="ti ti-trophy"></i>Need at least 2 weeks of data to compare.<br>Keep recording daily!</div>';
+        return;
+      }
+      var best = data.reduce(function (a, b) { return b.sold > a.sold ? b : a; });
+      var worst = data.reduce(function (a, b) { return b.sold < a.sold ? b : a; });
+      var tKg = data.reduce(function (s, w) { return s + w.sold; }, 0);
+      var tRev = data.reduce(function (s, w) { return s + w.revenue; }, 0);
+      el.innerHTML =
+        '<div class="insights-grid">' +
+        '<div class="insight-card"><span class="badge b-high"><i class="ti ti-trending-up"></i> Best week</span>' +
+        '<div class="wk-range">' + wkLbl(best.key) + '</div>' +
+        '<div class="kg-val">' + N(best.sold, 1) + ' kg</div>' +
+        '<div class="isub">' + M(best.revenue) + '&nbsp;\u00b7&nbsp;' + best.days + ' day' + (best.days > 1 ? 's' : '') + '</div></div>' +
+        '<div class="insight-card"><span class="badge b-low"><i class="ti ti-trending-down"></i> Worst week</span>' +
+        '<div class="wk-range">' + wkLbl(worst.key) + '</div>' +
+        '<div class="kg-val">' + N(worst.sold, 1) + ' kg</div>' +
+        '<div class="isub">' + M(worst.revenue) + '&nbsp;\u00b7&nbsp;' + worst.days + ' day' + (worst.days > 1 ? 's' : '') + '</div></div>' +
+        '</div><div class="divider"></div>' +
+        '<div class="stat-row">' +
+        '<div class="stat-card"><div class="lbl">Total weeks</div><div class="val">' + data.length + '</div></div>' +
+        '<div class="stat-card"><div class="lbl">Avg kg/week</div><div class="val">' + N(tKg / data.length, 1) + '</div></div>' +
+        '<div class="stat-card"><div class="lbl">All-time revenue</div><div class="val sm">' + M(tRev) + '</div></div>' +
+        '</div>';
+    }
+
+    /* ── CASH + POS ── */
+    function prefillExpected() {
+      var date = document.getElementById('cashDate').value;
+      var match = records.find(function (r) { return r.date === date; });
+      if (match) {
+        document.getElementById('cashExpected').value = Math.round(match.revenue);
+        cashCalc();
+      } else {
+        document.getElementById('cashExpected').value = '';
+        document.getElementById('cashPreview').style.display = 'none';
+      }
+    }
+    function cashCalc() {
+      var exp = parseFloat(document.getElementById('cashExpected').value);
+      var cash = parseFloat(document.getElementById('cashCash').value) || 0;
+      var pos = parseFloat(document.getElementById('cashPos').value) || 0;
+      var pr = document.getElementById('cashPreview');
+      if (isNaN(exp) || (cash === 0 && pos === 0)) { pr.style.display = 'none'; return; }
+      var total = cash + pos, diff = total - exp;
+      document.getElementById('cCashOut').textContent = M(cash);
+      document.getElementById('cPosOut').textContent = M(pos);
+      document.getElementById('cExpOut').textContent = M(exp);
+      document.getElementById('cActOut').textContent = M(total);
+      var dEl = document.getElementById('cDiffOut'), mEl = document.getElementById('cStatusMsg');
+      if (Math.abs(diff) < 1) {
+        dEl.textContent = '\u20a60'; dEl.style.color = 'var(--green)';
+        mEl.textContent = '\u2713 Total matches expected \u2014 no discrepancy.'; mEl.style.color = 'var(--green)';
+        pr.style.borderColor = 'var(--green)';
+      } else if (diff < 0) {
+        dEl.textContent = '-' + M(Math.abs(diff)); dEl.style.color = 'var(--red)';
+        mEl.textContent = '\u26a0 Shortfall of ' + M(Math.abs(diff)) + ' \u2014 payment is missing!'; mEl.style.color = 'var(--red)';
+        pr.style.borderColor = 'var(--red)';
+      } else {
+        dEl.textContent = '+' + M(diff); dEl.style.color = 'var(--amber)';
+        mEl.textContent = 'Surplus of ' + M(diff) + ' \u2014 more collected than expected.'; mEl.style.color = 'var(--amber)';
+        pr.style.borderColor = 'var(--amber)';
+      }
+      pr.style.display = 'block';
+    }
+    function saveCash() {
+      var date = document.getElementById('cashDate').value;
+      var exp = parseFloat(document.getElementById('cashExpected').value);
+      var cash = parseFloat(document.getElementById('cashCash').value) || 0;
+      var pos = parseFloat(document.getElementById('cashPos').value) || 0;
+      var note = document.getElementById('cashNote').value.trim();
+      if (!date || isNaN(exp)) { flash('cashAlert', 'Please fill in the date and expected amount.', 'error'); return; }
+      if (cash === 0 && pos === 0) { flash('cashAlert', 'Please enter at least a cash or POS amount.', 'error'); return; }
+      var total = cash + pos, diff = total - exp;
+      var status = Math.abs(diff) < 1 ? 'ok' : diff < 0 ? 'short' : 'surplus';
+      setBusy('saveCashBtn', true);
+      db.collection(COL_CASH).doc(date).set({ date: date, expected: exp, cash: cash, pos: pos, actual: total, diff: diff, status: status, note: note })
+        .then(function () {
+          setBusy('saveCashBtn', false);
+          ['cashExpected', 'cashCash', 'cashPos', 'cashNote'].forEach(function (id) { document.getElementById(id).value = ''; });
+          document.getElementById('cashPreview').style.display = 'none';
+          flash('cashAlert', 'Remittance saved to cloud!', 'success');
+        })
+        .catch(function (err) { setBusy('saveCashBtn', false); flash('cashAlert', 'Save failed: ' + err.message, 'error'); });
+    }
+    function editCash(date) {
+      if (!isAdmin) { return; }
+      var r = cashRecs.find(function (r) { return r.date === date; });
+      if (!r) return;
+      /* switch to cash tab and pre-fill all fields */
+      document.querySelectorAll('.sec').forEach(function (s) { s.classList.remove('show'); });
+      document.querySelectorAll('nav button').forEach(function (b) { b.classList.remove('active'); });
+      document.getElementById('sec-money').classList.add('show');
+      var moneyBtn = document.querySelector('nav button[onclick*="money"]'); if (moneyBtn) moneyBtn.classList.add('active');
+      activeTab = 'money';
+      /* show cash sub-tab */
+      document.querySelectorAll('#sec-money .sub-sec').forEach(function (s) { s.classList.remove('show'); });
+      document.querySelectorAll('#sec-money .sub-btn').forEach(function (b) { b.classList.remove('active'); });
+      document.getElementById('sub-money-cash').classList.add('show');
+      var cashSubBtn = document.querySelector('#sec-money .sub-btn[onclick*="cash"]'); if (cashSubBtn) cashSubBtn.classList.add('active');
+      document.getElementById('cashDate').value = r.date;
+      document.getElementById('cashExpected').value = r.expected;
+      document.getElementById('cashCash').value = r.cash || 0;
+      document.getElementById('cashPos').value = r.pos || 0;
+      document.getElementById('cashNote').value = r.note || '';
+      /* show editing banner */
+      var alertEl = document.getElementById('cashAlert');
+      alertEl.className = 'alert success';
+      alertEl.innerHTML = '<i class="ti ti-edit" style="vertical-align:-2px;margin-right:4px;"></i>Editing cash record for <strong>' + D(date) + '</strong> — make your changes and save.';
+      alertEl.style.display = 'block';
+      cashCalc();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function renderCash() {
+      var tb = document.getElementById('cashBody');
+      var cols = isAdmin ? 9 : 7;
+      if (!cashRecs.length) {
+        tb.innerHTML = '<tr><td colspan="' + cols + '"><div class="empty"><i class="ti ti-cash"></i>No remittance records yet.</div></td></tr>';
+        return;
+      }
+      var h = '';
+      cashRecs.slice().reverse().forEach(function (r) {
+        var cls = r.status === 'short' ? 'flag-row' : r.status === 'surplus' ? 'warn-row' : '';
+        var badge = r.status === 'short'
+          ? '<span class="badge b-low"><i class="ti ti-arrow-down"></i> Short</span>'
+          : r.status === 'surplus'
+            ? '<span class="badge b-warn"><i class="ti ti-arrow-up"></i> Surplus</span>'
+            : '<span class="badge b-ok"><i class="ti ti-check"></i> OK</span>';
+        var dStr = r.diff >= 0 ? '+' + M(r.diff) : '-' + M(Math.abs(r.diff));
+        var cashAmt = r.cash || 0; var posAmt = r.pos || 0;
+        var total = r.actual || (cashAmt + posAmt);
+        h += '<tr class="' + cls + '">' +
+          '<td style="white-space:nowrap;">' + D(r.date) + '</td>' +
+          '<td>' + M(r.expected) + '</td>' +
+          '<td>' + M(cashAmt) + '</td>' +
+          '<td>' + M(posAmt) + '</td>' +
+          '<td style="font-weight:500;">' + M(total) + '</td>' +
+          '<td style="font-weight:500;">' + dStr + '</td>' +
+          '<td>' + badge + '</td>' +
+          (isAdmin ?
+            '<td><button class="del-btn" onclick="editCash(\'' + r.date + '\')" title="Edit"><i class="ti ti-edit" style="color:var(--blue);"></i></button></td>' +
+            '<td><button class="del-btn" onclick="delCash(\'' + r.date + '\')" title="Delete"><i class="ti ti-trash"></i></button></td>'
+            : '') +
+          '</tr>';
+      });
+      tb.innerHTML = h;
+      document.getElementById('cashDate').value = new Date().toISOString().slice(0, 10);
+    }
+
+    /* ── MONTHLY SUMMARY ── */
+    function renderMonthly() {
+      var el = document.getElementById('monthlyContent');
+      if (!records.length && !cashRecs.length) {
+        el.innerHTML = '<div class="empty"><i class="ti ti-calendar-stats"></i>No data yet. Start recording daily entries.</div>';
+        return;
+      }
+      /* group by month key YYYY-MM */
+      var months = {};
+      records.forEach(function (r) {
+        var mk = r.date.slice(0, 7);
+        if (!months[mk]) months[mk] = { key: mk, days: 0, sold: 0, revenue: 0, cash: 0, pos: 0, total: 0 };
+        months[mk].days++; months[mk].sold += r.sold; months[mk].revenue += r.revenue;
+      });
+      cashRecs.forEach(function (c) {
+        var mk = c.date.slice(0, 7);
+        if (!months[mk]) months[mk] = { key: mk, days: 0, sold: 0, revenue: 0, cash: 0, pos: 0, total: 0 };
+        months[mk].cash += (c.cash || 0);
+        months[mk].pos += (c.pos || 0);
+        months[mk].total += (c.actual || (c.cash || 0) + (c.pos || 0));
+      });
+      var data = Object.values(months).sort(function (a, b) { return a.key < b.key ? -1 : 1; });
+
+      function mLabel(k) {
+        var d = new Date(k + '-01T00:00:00');
+        return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+      }
+
+      var h = '';
+      data.slice().reverse().forEach(function (m) {
+        var diff = m.total - m.revenue;
+        var diffCls = Math.abs(diff) < 1 ? 'color:var(--green)' : diff < 0 ? 'color:var(--red)' : 'color:var(--amber)';
+        var diffStr = Math.abs(diff) < 1 ? '\u20a60' : diff < 0 ? '-' + M(Math.abs(diff)) : '+' + M(diff);
+        h += '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad);padding:1rem 1.1rem;margin-bottom:12px;">' +
+          '<p style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;">' + mLabel(m.key) + '</p>' +
+          '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">' +
+          '<div style="background:var(--bg2);border-radius:var(--rad-sm);padding:10px;text-align:center;">' +
+          '<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Kg sold</div>' +
+          '<div style="font-size:18px;font-weight:600;color:var(--text);">' + N(m.sold, 1) + ' kg</div>' +
+          '</div>' +
+          '<div style="background:var(--bg2);border-radius:var(--rad-sm);padding:10px;text-align:center;">' +
+          '<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Expected revenue</div>' +
+          '<div style="font-size:18px;font-weight:600;color:var(--text);">' + M(m.revenue) + '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">' +
+          '<div style="background:var(--accent-bg);border-radius:var(--rad-sm);padding:10px;text-align:center;">' +
+          '<div style="font-size:11px;color:var(--green-text);margin-bottom:4px;"><i class="ti ti-banknote"></i> Cash</div>' +
+          '<div style="font-size:16px;font-weight:600;color:var(--green-text);">' + M(m.cash) + '</div>' +
+          '</div>' +
+          '<div style="background:var(--blue-bg);border-radius:var(--rad-sm);padding:10px;text-align:center;">' +
+          '<div style="font-size:11px;color:var(--blue-text);margin-bottom:4px;"><i class="ti ti-credit-card"></i> POS</div>' +
+          '<div style="font-size:16px;font-weight:600;color:var(--blue-text);">' + M(m.pos) + '</div>' +
+          '</div>' +
+          '<div style="background:var(--bg2);border-radius:var(--rad-sm);padding:10px;text-align:center;">' +
+          '<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Total paid</div>' +
+          '<div style="font-size:16px;font-weight:600;color:var(--text);">' + M(m.total) + '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div style="margin-top:8px;padding:8px 10px;border-radius:var(--rad-sm);background:var(--bg2);display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="font-size:12px;color:var(--text2);">Variance (paid vs expected)</span>' +
+          '<span style="font-size:13px;font-weight:600;' + diffCls + '">' + diffStr + '</span>' +
+          '</div>' +
+          '</div>';
+      });
+
+      /* grand totals */
+      var gSold = data.reduce(function (s, m) { return s + m.sold; }, 0);
+      var gRev = data.reduce(function (s, m) { return s + m.revenue; }, 0);
+      var gCash = data.reduce(function (s, m) { return s + m.cash; }, 0);
+      var gPos = data.reduce(function (s, m) { return s + m.pos; }, 0);
+      var gTotal = data.reduce(function (s, m) { return s + m.total; }, 0);
+
+      h += '<div style="background:var(--bg);border:1.5px solid var(--accent);border-radius:var(--rad);padding:1rem 1.1rem;margin-bottom:12px;">' +
+        '<p style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px;"><i class="ti ti-sum"></i> All-time totals</p>' +
+        '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">' +
+        '<div style="text-align:center;"><div style="font-size:11px;color:var(--text2);">Total kg sold</div><div style="font-size:18px;font-weight:600;color:var(--text);">' + N(gSold, 1) + ' kg</div></div>' +
+        '<div style="text-align:center;"><div style="font-size:11px;color:var(--text2);">Total revenue</div><div style="font-size:18px;font-weight:600;color:var(--text);">' + M(gRev) + '</div></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">' +
+        '<div style="text-align:center;"><div style="font-size:11px;color:var(--green-text);">Total cash</div><div style="font-size:15px;font-weight:600;color:var(--green-text);">' + M(gCash) + '</div></div>' +
+        '<div style="text-align:center;"><div style="font-size:11px;color:var(--blue-text);">Total POS</div><div style="font-size:15px;font-weight:600;color:var(--blue-text);">' + M(gPos) + '</div></div>' +
+        '<div style="text-align:center;"><div style="font-size:11px;color:var(--text2);">Total paid</div><div style="font-size:15px;font-weight:600;color:var(--text);">' + M(gTotal) + '</div></div>' +
+        '</div>' +
+        '</div>';
+
+      el.innerHTML = h;
+    }
+
+    /* ── DATE RANGE REPORT ── */
+    function setPreset(preset) {
+      var now = new Date();
+      var from, to;
+      var y = now.getFullYear(), mo = now.getMonth(), d = now.getDate();
+
+      if (preset === 'today') {
+        from = to = now.toISOString().slice(0, 10);
+      } else if (preset === 'week') {
+        var day = now.getDay(), diff = day === 0 ? -6 : 1 - day;
+        var mon = new Date(y, mo, d + diff);
+        from = mon.toISOString().slice(0, 10);
+        to = now.toISOString().slice(0, 10);
+      } else if (preset === 'month') {
+        from = new Date(y, mo, 1).toISOString().slice(0, 10);
+        to = now.toISOString().slice(0, 10);
+      } else if (preset === 'last7') {
+        from = new Date(y, mo, d - 6).toISOString().slice(0, 10);
+        to = now.toISOString().slice(0, 10);
+      } else if (preset === 'last30') {
+        from = new Date(y, mo, d - 29).toISOString().slice(0, 10);
+        to = now.toISOString().slice(0, 10);
+      } else if (preset === 'lastmonth') {
+        var lm = new Date(y, mo - 1, 1);
+        var lme = new Date(y, mo, 0);
+        from = lm.toISOString().slice(0, 10);
+        to = lme.toISOString().slice(0, 10);
+      }
+
+      document.getElementById('reportFrom').value = from;
+      document.getElementById('reportTo').value = to;
+
+      /* highlight active preset button */
+      document.querySelectorAll('.preset-btn').forEach(function (b) { b.classList.remove('active-preset'); });
+      event.currentTarget.classList.add('active-preset');
+
+      runReport();
+    }
+
+    function runReport() {
+      var from = document.getElementById('reportFrom').value;
+      var to = document.getElementById('reportTo').value;
+      var el = document.getElementById('reportResult');
+      var expBtns = document.getElementById('reportExportBtns');
+
+      if (!from || !to) {
+        el.innerHTML = '<div class="empty" style="padding:1.5rem;"><i class="ti ti-calendar-search"></i>Select a date range above to generate your report.</div>';
+        if (expBtns) expBtns.style.display = 'none';
+        return;
+      }
+      if (from > to) {
+        el.innerHTML = '<div class="banner danger" style="margin-top:4px;"><i class="ti ti-alert-circle"></i><p>From date cannot be after To date.</p></div>';
+        if (expBtns) expBtns.style.display = 'none';
+        return;
+      }
+
+      var recs = records.filter(function (r) { return r.date >= from && r.date <= to; });
+      var cash = cashRecs.filter(function (c) { return c.date >= from && c.date <= to; });
+      var exps = expRecs.filter(function (e) { return e.date >= from && e.date <= to; });
+      var p = calcProfit(recs, exps);
+
+      var totalKg = recs.reduce(function (s, r) { return s + r.sold; }, 0);
+      var totalRev = recs.reduce(function (s, r) { return s + r.revenue; }, 0);
+      var totalCash = cash.reduce(function (s, c) { return s + (c.cash || 0); }, 0);
+      var totalPos = cash.reduce(function (s, c) { return s + (c.pos || 0); }, 0);
+      var totalPaid = cash.reduce(function (s, c) { return s + (c.actual || ((c.cash || 0) + (c.pos || 0))); }, 0);
+      var variance = totalPaid - totalRev;
+      var days = recs.length;
+      var cashDays = cash.length;
+      var avgKg = days > 0 ? totalKg / days : 0;
+      var avgRev = days > 0 ? totalRev / days : 0;
+
+      function fmtShort(s) { return new Date(s + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+      var rangeLabel = fmtShort(from) + ' &mdash; ' + fmtShort(to);
+
+      var varCls = Math.abs(variance) < 1 ? 'color:var(--green)' : variance < 0 ? 'color:var(--red)' : 'color:var(--amber)';
+      var varStr = Math.abs(variance) < 1 ? '\u20a60 (Matched)' : variance < 0 ? '-' + M(Math.abs(variance)) + ' (Shortfall)' : '+' + M(variance) + ' (Surplus)';
+      var varBanner = Math.abs(variance) < 1
+        ? '<div class="banner ok" style="margin-top:10px;"><i class="ti ti-circle-check"></i><p>Payments match revenue for this period.</p></div>'
+        : variance < 0
+          ? '<div class="banner danger" style="margin-top:10px;"><i class="ti ti-alert-circle"></i><p>Shortfall of ' + M(Math.abs(variance)) + ' — payments less than expected revenue.</p></div>'
+          : '<div class="banner warn" style="margin-top:10px;"><i class="ti ti-alert-triangle"></i><p>Surplus of ' + M(variance) + ' — more collected than expected.</p></div>';
+
+      var profitCls = p.profit >= 0 ? 'color:var(--green)' : 'color:var(--red)';
+
+      if (!days && !cashDays) {
+        el.innerHTML = '<div class="banner warn" style="margin-top:4px;"><i class="ti ti-info-circle"></i><p>No records found between ' + rangeLabel + '. Try a different date range.</p></div>';
+        if (expBtns) expBtns.style.display = 'none';
+        return;
+      }
+
+      el.innerHTML =
+        '<div style="font-size:12px;color:var(--text3);margin-bottom:10px;text-align:center;">' + rangeLabel + '</div>' +
+
+        '<div class="report-hero">' +
+        '<div class="report-hero-item"><div class="lbl">Total kg sold</div><div class="val">' + N(totalKg, 1) + '</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">kg</div></div>' +
+        '<div class="report-hero-item"><div class="lbl">Total revenue</div><div class="val sm">' + M(totalRev) + '</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">from meter</div></div>' +
+        '</div>' +
+
+        '<div class="card" style="margin-bottom:10px;">' +
+        '<p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Payments collected</p>' +
+        '<div class="report-row"><span class="rl"><i class="ti ti-banknote" style="vertical-align:-2px;margin-right:4px;"></i>Cash remittance</span><span class="rv">' + M(totalCash) + '</span></div>' +
+        '<div class="report-row"><span class="rl"><i class="ti ti-credit-card" style="vertical-align:-2px;margin-right:4px;"></i>POS remittance</span><span class="rv">' + M(totalPos) + '</span></div>' +
+        '<div class="report-row" style="background:var(--bg2);margin:0 -1.1rem;padding:9px 1.1rem;"><span class="rl" style="font-weight:600;color:var(--text);">Total payments</span><span class="rv" style="font-size:15px;">' + M(totalPaid) + '</span></div>' +
+        '</div>' +
+
+        '<div class="card" style="margin-bottom:10px;">' +
+        '<p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Profit &amp; loss</p>' +
+        '<div class="report-row"><span class="rl">Revenue</span><span class="rv">' + M(p.revenue) + '</span></div>' +
+        '<div class="report-row"><span class="rl">Gas cost (weighted avg)</span><span class="rv" style="color:var(--red);">-' + M(p.gasCost) + '</span></div>' +
+        '<div class="report-row"><span class="rl">Expenses</span><span class="rv" style="color:var(--red);">-' + M(p.expenses) + '</span></div>' +
+        '<div class="report-row" style="background:var(--bg2);margin:0 -1.1rem;padding:9px 1.1rem;"><span class="rl" style="font-weight:600;color:var(--text);">Net profit</span><span class="rv" style="font-size:15px;' + profitCls + '">' + M(p.profit) + '</span></div>' +
+        '</div>' +
+
+        '<div class="card" style="margin-bottom:10px;">' +
+        '<p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Averages &amp; activity</p>' +
+        '<div class="report-row"><span class="rl">Days with meter entry</span><span class="rv">' + days + ' day' + (days !== 1 ? 's' : '') + '</span></div>' +
+        '<div class="report-row"><span class="rl">Days with remittance</span><span class="rv">' + cashDays + ' day' + (cashDays !== 1 ? 's' : '') + '</span></div>' +
+        '<div class="report-row"><span class="rl">Avg kg sold/day</span><span class="rv">' + N(avgKg, 1) + ' kg</span></div>' +
+        '<div class="report-row"><span class="rl">Avg revenue/day</span><span class="rv">' + M(avgRev) + '</span></div>' +
+        '</div>' +
+
+        '<div class="card">' +
+        '<p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Variance</p>' +
+        '<div class="report-row"><span class="rl">Expected (revenue)</span><span class="rv">' + M(totalRev) + '</span></div>' +
+        '<div class="report-row"><span class="rl">Collected (payments)</span><span class="rv">' + M(totalPaid) + '</span></div>' +
+        '<div class="report-row"><span class="rl">Difference</span><span class="rv" style="' + varCls + '">' + varStr + '</span></div>' +
+        '</div>' +
+        varBanner +
+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">' +
+        '<button class="btn-primary" style="background:#c0392b;" onclick="exportReportPDF()"><i class="ti ti-file-type-pdf"></i> PDF</button>' +
+        '<button class="btn-primary" style="background:#217346;" onclick="exportReportExcel()"><i class="ti ti-file-type-xls"></i> Excel</button>' +
+        '</div>';
+    }
+
+    /* ── PRICE AUTO-FILL ── */
+    function autofillCurrentPrice() {
+      var dateEl = document.getElementById('entryDate');
+      var priceEl = document.getElementById('entryPrice');
+      if (!dateEl || !priceEl || priceEl.value) return;
+      var date = dateEl.value || new Date().toISOString().slice(0, 10);
+      var applicable = priceRecs.filter(function (p) { return p.date <= date; });
+      if (applicable.length) {
+        var latest = applicable[applicable.length - 1];
+        priceEl.value = latest.price;
+        liveCalc();
+      }
+    }
+
+    /* ── LOW STOCK CHECK ── */
+    function checkLowStock() {
+      if (!stockThreshold || stockThreshold <= 0) return;
+      var remaining = getRemainingStock();
+      var alertEl = document.getElementById('stockAlert');
+      var msgEl = document.getElementById('stockAlertMsg');
+      if (!alertEl) return;
+      if (remaining <= stockThreshold) {
+        alertEl.style.display = 'flex';
+        msgEl.textContent = 'Low stock warning! Only ' + N(remaining, 1) + ' kg remaining — below your threshold of ' + N(stockThreshold, 0) + ' kg. Order a refill soon.';
+      } else {
+        alertEl.style.display = 'none';
+      }
+    }
+
+    /* ── WEIGHTED AVG COST PRICE ── */
+    function getCostPriceForDate(date) {
+      /* find the most recent stock delivery on or before this date */
+      var applicable = stockRecs.filter(function (s) { return s.date <= date; });
+      if (!applicable.length) return 0;
+      /* weighted average of all deliveries up to that date */
+      var totalKg = applicable.reduce(function (s, r) { return s + r.kg; }, 0);
+      var totalCost = applicable.reduce(function (s, r) { return s + (r.kg * r.costPerKg); }, 0);
+      return totalKg > 0 ? totalCost / totalKg : 0;
+    }
+
+    /* ── STOCK ── */
+    function saveStock() {
+      var date = document.getElementById('stockDate').value;
+      var supplier = document.getElementById('stockSupplier').value.trim();
+      var kg = parseFloat(document.getElementById('stockKg').value);
+      var cost = parseFloat(document.getElementById('stockCost').value);
+      if (!date || !supplier || isNaN(kg) || isNaN(cost)) { flash('stockFormAlert', 'Please fill in all fields.', 'error'); return; }
+      setBusy('saveStockBtn', true);
+      db.collection(COL_STOCK).add({ date: date, supplier: supplier, kg: kg, costPerKg: cost, totalCost: kg * cost })
+        .then(function () {
+          setBusy('saveStockBtn', false);
+          ['stockSupplier', 'stockKg', 'stockCost'].forEach(function (id) { document.getElementById(id).value = ''; });
+          flash('stockFormAlert', 'Delivery saved!', 'success');
+        })
+        .catch(function (e) { setBusy('saveStockBtn', false); flash('stockFormAlert', 'Save failed: ' + e.message, 'error'); });
+    }
+    function saveThreshold() {
+      var val = parseFloat(document.getElementById('stockThreshold').value);
+      if (isNaN(val) || val < 0) return;
+      stockThreshold = val;
+      db.collection(COL_SETTINGS).doc('lowstock').set({ threshold: val });
+      checkLowStock();
+      flash('stockFormAlert', 'Threshold saved!', 'success');
+    }
+    function delStock(id) {
+      if (!isAdmin) { alert('Only admin can delete.'); return; }
+      if (!confirm('Delete this delivery record?')) return;
+      db.collection(COL_STOCK).doc(id).delete();
+    }
+    /* ── STOCK PERIODS ──
+       Each delivery = one stock period.
+       Period end date = start date of next delivery (or today if current).
+       Kg sold in period = sum of daily records within [periodStart, periodEnd).
+       Carry-forward = previous period's remaining kg.
+    */
+    function buildStockPeriods() {
+      if (!stockRecs.length) return [];
+
+      // Sort deliveries oldest → newest
+      var sorted = stockRecs.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+      var today = new Date().toISOString().slice(0, 10);
+      var periods = [];
+
+      sorted.forEach(function (delivery, idx) {
+        var periodStart = delivery.date;
+        var periodEnd = idx < sorted.length - 1 ? sorted[idx + 1].date : null; // null = open/current
+
+        // Kg sold within this period's date range
+        var soldInPeriod = records.filter(function (r) {
+          if (r.date < periodStart) return false;
+          if (periodEnd && r.date >= periodEnd) return false;
+          return true;
+        }).reduce(function (s, r) { return s + r.sold; }, 0);
+
+        // Carry-forward from previous period
+        var carriedIn = idx === 0 ? 0 : (periods[idx - 1].carriedOut || 0);
+
+        var available = delivery.kg + carriedIn;
+        var remaining = available - soldInPeriod;
+        var carriedOut = periodEnd ? Math.max(0, remaining) : null; // null = still active
+
+        periods.push({
+          delivery: delivery,
+          periodStart: periodStart,
+          periodEnd: periodEnd,
+          carriedIn: carriedIn,
+          available: available,
+          soldInPeriod: soldInPeriod,
+          remaining: remaining,
+          carriedOut: carriedOut,
+          isCurrent: !periodEnd
+        });
+      });
+
+      return periods;
+    }
+
+    function getRemainingStock() {
+      var periods = buildStockPeriods();
+      if (!periods.length) return 0;
+      return periods[periods.length - 1].remaining;
+    }
+
+    function renderStock() {
+      var periods = buildStockPeriods();
+      var sumEl = document.getElementById('stockSummary');
+
+      if (periods.length) {
+        var current = periods[periods.length - 1];
+        var remaining = current.remaining;
+        var remCls = (stockThreshold > 0 && remaining <= stockThreshold) ? 'color:var(--red)' : 'color:var(--green)';
+
+        sumEl.innerHTML =
+          '<div class="stat-card"><div class="lbl">Current period delivered</div><div class="val">' + N(current.delivery.kg, 1) + ' kg</div></div>' +
+          '<div class="stat-card"><div class="lbl">Sold this period</div><div class="val">' + N(current.soldInPeriod, 1) + ' kg</div></div>' +
+          '<div class="stat-card"><div class="lbl">Remaining now</div><div class="val" style="' + remCls + '">' + N(remaining, 1) + ' kg</div></div>';
+
+        // Show carry-forward if any
+        if (current.carriedIn > 0) {
+          sumEl.innerHTML +=
+            '<div class="stat-card" style="grid-column:1/-1;background:var(--amber-bg);border:1px solid var(--amber)">' +
+            '<div class="lbl" style="color:var(--amber-text)"><i class="ti ti-transfer-in" style="vertical-align:-2px;margin-right:4px;"></i>Carried forward from previous period</div>' +
+            '<div class="val" style="color:var(--amber-text)">' + N(current.carriedIn, 1) + ' kg</div>' +
+            '<div style="font-size:11px;color:var(--amber-text);margin-top:2px;">Available this period: ' + N(current.available, 1) + ' kg (' + N(current.delivery.kg, 1) + ' delivered + ' + N(current.carriedIn, 1) + ' carried in)</div>' +
+            '</div>';
+          sumEl.style.gridTemplateColumns = 'repeat(3,1fr)';
+        }
+      } else {
+        sumEl.innerHTML = '';
+      }
+
+      checkLowStock();
+
+      var tb = document.getElementById('stockBody');
+      if (!periods.length) {
+        tb.innerHTML = '<tr><td colspan="9"><div class="empty"><i class="ti ti-package"></i>No deliveries logged yet.</div></td></tr>';
+        return;
+      }
+
+      var h = '';
+      // Show newest first
+      periods.slice().reverse().forEach(function (p) {
+        var r = p.delivery;
+        var statusBadge = p.isCurrent
+          ? '<span class="badge b-high" style="font-size:10px">Active</span>'
+          : '<span class="badge" style="background:var(--bg3);color:var(--text3);font-size:10px">Closed</span>';
+
+        var carriedOutCell = p.isCurrent
+          ? '<span style="color:var(--text3);font-size:12px;">—</span>'
+          : '<span style="color:var(--amber);font-weight:600;">' + N(p.carriedOut, 1) + ' kg</span>';
+
+        var carriedInCell = p.carriedIn > 0
+          ? '<span style="color:var(--amber);font-weight:600;">+' + N(p.carriedIn, 1) + ' kg</span>'
+          : '<span style="color:var(--text3);font-size:12px;">—</span>';
+
+        var rowStyle = p.isCurrent ? 'background:var(--green-bg)' : '';
+
+        h += '<tr style="' + rowStyle + '">' +
+          '<td style="white-space:nowrap;">' + D(r.date) + '</td>' +
+          '<td>' + r.supplier + '</td>' +
+          '<td style="font-weight:600;">' + N(r.kg, 1) + ' kg</td>' +
+          '<td>' + carriedInCell + '</td>' +
+          '<td style="font-weight:600;">' + N(p.available, 1) + ' kg</td>' +
+          '<td style="font-weight:600;">' + N(p.soldInPeriod, 1) + ' kg</td>' +
+          '<td>' + carriedOutCell + '</td>' +
+          '<td>' + statusBadge + '</td>' +
+          (isAdmin ? '<td><button class="del-btn" onclick="delStock(\'' + r._id + '\')" title="Delete"><i class="ti ti-trash"></i></button></td>' : '') +
+          '</tr>';
+      });
+      tb.innerHTML = h;
+    }
+
+    /* ── EXPENSES ── */
+    var EXP_CATS = { fuel: 'Generator fuel', maintenance: 'Maintenance', salary: 'Salary / wages', transport: 'Transport', other: 'Other' };
+    function saveExpense() {
+      var date = document.getElementById('expDate').value;
+      var cat = document.getElementById('expCategory').value;
+      var amount = parseFloat(document.getElementById('expAmount').value);
+      var desc = document.getElementById('expDesc').value.trim();
+      if (!date || isNaN(amount) || amount <= 0) { flash('expAlert', 'Please fill in date and amount.', 'error'); return; }
+      setBusy('saveExpBtn', true);
+      db.collection(COL_EXP).add({ date: date, category: cat, amount: amount, desc: desc })
+        .then(function () {
+          setBusy('saveExpBtn', false);
+          ['expAmount', 'expDesc'].forEach(function (id) { document.getElementById(id).value = ''; });
+          flash('expAlert', 'Expense saved!', 'success');
+        })
+        .catch(function (e) { setBusy('saveExpBtn', false); flash('expAlert', 'Save failed: ' + e.message, 'error'); });
+    }
+    function delExp(id) {
+      if (!isAdmin) { alert('Only admin can delete.'); return; }
+      if (!confirm('Delete this expense?')) return;
+      db.collection(COL_EXP).doc(id).delete();
+    }
+    function renderExpenses() {
+      var total = expRecs.reduce(function (s, r) { return s + r.amount; }, 0);
+      var bycat = {};
+      expRecs.forEach(function (r) { bycat[r.category] = (bycat[r.category] || 0) + r.amount; });
+
+      var sumEl = document.getElementById('expSummary');
+      var catHtml = Object.keys(bycat).map(function (k) {
+        return '<div class="stat-card"><div class="lbl">' + EXP_CATS[k] + '</div><div class="val sm">' + M(bycat[k]) + '</div></div>';
+      }).join('');
+      sumEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;">' + catHtml + '</div>' +
+        '<div class="card" style="text-align:center;margin-bottom:0;"><div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Total expenses (all time)</div><div style="font-size:22px;font-weight:700;color:var(--red);">' + M(total) + '</div></div>';
+
+      var tb = document.getElementById('expBody');
+      if (!expRecs.length) {
+        tb.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-receipt"></i>No expenses logged yet.</div></td></tr>';
+        return;
+      }
+      var h = '';
+      expRecs.slice().reverse().forEach(function (r) {
+        h += '<tr>' +
+          '<td style="white-space:nowrap;">' + D(r.date) + '</td>' +
+          '<td><span class="badge b-warn">' + EXP_CATS[r.category] + '</span></td>' +
+          '<td style="color:var(--text2);font-size:12px;">' + (r.desc || '&#8212;') + '</td>' +
+          '<td style="font-weight:500;">' + M(r.amount) + '</td>' +
+          (isAdmin ? '<td><button class="del-btn" onclick="delExp(\'' + r._id + '\')"><i class="ti ti-trash"></i></button></td>' : '') +
+          '</tr>';
+      });
+      tb.innerHTML = h;
+    }
+
+    /* ── PRICE HISTORY ── */
+    function savePrice() {
+      var date = document.getElementById('priceDate').value;
+      var amount = parseFloat(document.getElementById('priceAmount').value);
+      var note = document.getElementById('priceNote').value.trim();
+      if (!date || isNaN(amount) || amount <= 0) { flash('priceAlert', 'Please fill in date and price.', 'error'); return; }
+      setBusy('savePriceBtn', true);
+      db.collection(COL_PRICE).doc(date).set({ date: date, price: amount, note: note })
+        .then(function () {
+          setBusy('savePriceBtn', false);
+          ['priceAmount', 'priceNote'].forEach(function (id) { document.getElementById(id).value = ''; });
+          flash('priceAlert', 'Price saved!', 'success');
+        })
+        .catch(function (e) { setBusy('savePriceBtn', false); flash('priceAlert', 'Save failed: ' + e.message, 'error'); });
+    }
+    function delPrice(date) {
+      if (!isAdmin) { alert('Only admin can delete.'); return; }
+      if (!confirm('Delete this price record?')) return;
+      db.collection(COL_PRICE).doc(date).delete();
+    }
+    function renderPrices() {
+      var cpEl = document.getElementById('currentPrice');
+      if (priceRecs.length) {
+        var cur = priceRecs[priceRecs.length - 1];
+        cpEl.innerHTML = '<div class="banner ok"><i class="ti ti-tag"></i><p><strong>Current price:</strong> ' + M(cur.price) + ' per kg — effective ' + D(cur.date) + '</p></div>';
+      } else {
+        cpEl.innerHTML = '';
+      }
+      var tb = document.getElementById('priceBody');
+      if (!priceRecs.length) {
+        tb.innerHTML = '<tr><td colspan="4"><div class="empty"><i class="ti ti-tag"></i>No price records yet.</div></td></tr>';
+        return;
+      }
+      var h = '';
+      priceRecs.slice().reverse().forEach(function (r) {
+        h += '<tr>' +
+          '<td style="white-space:nowrap;">' + D(r.date) + '</td>' +
+          '<td style="font-weight:500;">' + M(r.price) + '/kg</td>' +
+          '<td style="color:var(--text2);font-size:12px;">' + (r.note || '&#8212;') + '</td>' +
+          (isAdmin ? '<td><button class="del-btn" onclick="delPrice(\'' + r.date + '\')"><i class="ti ti-trash"></i></button></td>' : '') +
+          '</tr>';
+      });
+      tb.innerHTML = h;
+    }
+
+    /* ── PROFIT CALC HELPER ── */
+    function calcProfit(recs, exps) {
+      var revenue = recs.reduce(function (s, r) { return s + r.revenue; }, 0);
+      var gasCost = recs.reduce(function (s, r) { return s + (r.sold * getCostPriceForDate(r.date)); }, 0);
+      var expenses = exps.reduce(function (s, e) { return s + e.amount; }, 0);
+      var profit = revenue - gasCost - expenses;
+      return { revenue: revenue, gasCost: gasCost, expenses: expenses, profit: profit };
+    }
+
+    /* ── EXPORT HELPERS ── */
+    function exportReportPDF() {
+      var from = document.getElementById('reportFrom').value;
+      var to = document.getElementById('reportTo').value;
+      if (!from || !to) return;
+      var recs = records.filter(function (r) { return r.date >= from && r.date <= to; });
+      var cash = cashRecs.filter(function (c) { return c.date >= from && c.date <= to; });
+      var exps = expRecs.filter(function (e) { return e.date >= from && e.date <= to; });
+      var p = calcProfit(recs, exps);
+      var totalCash = cash.reduce(function (s, c) { return s + (c.cash || 0); }, 0);
+      var totalPos = cash.reduce(function (s, c) { return s + (c.pos || 0); }, 0);
+      var totalPaid = cash.reduce(function (s, c) { return s + (c.actual || ((c.cash || 0) + (c.pos || 0))); }, 0);
+
+      var doc = new jspdf.jsPDF();
+      doc.setFontSize(16); doc.text('GasLedger — Report', 14, 18);
+      doc.setFontSize(10); doc.setTextColor(100);
+      doc.text('Period: ' + D(from) + ' to ' + D(to), 14, 26);
+      doc.text('Generated: ' + new Date().toLocaleDateString('en-GB'), 14, 32);
+
+      doc.autoTable({
+        startY: 40,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total kg sold', N(recs.reduce(function (s, r) { return s + r.sold; }, 0), 1) + ' kg'],
+          ['Total revenue', M(p.revenue)],
+          ['Gas cost', M(p.gasCost)],
+          ['Total expenses', M(p.expenses)],
+          ['Net profit', M(p.profit)],
+          ['Cash collected', M(totalCash)],
+          ['POS collected', M(totalPos)],
+          ['Total payments', M(totalPaid)],
+        ],
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [29, 158, 117] }
+      });
+
+      doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 10,
+        head: [['Date', 'Open', 'Close', 'Sold kg', 'Price', 'Revenue']],
+        body: recs.map(function (r) { return [D(r.date), N(r.open, 1), N(r.close, 1), N(r.sold, 1), M(r.price), M(r.revenue)]; }),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [29, 158, 117] }
+      });
+
+      doc.save('gasledger-report-' + from + '-to-' + to + '.pdf');
+    }
+
+    function exportReportExcel() {
+      var from = document.getElementById('reportFrom').value;
+      var to = document.getElementById('reportTo').value;
+      if (!from || !to) return;
+      var recs = records.filter(function (r) { return r.date >= from && r.date <= to; });
+      var cash = cashRecs.filter(function (c) { return c.date >= from && c.date <= to; });
+      var exps = expRecs.filter(function (e) { return e.date >= from && e.date <= to; });
+      var p = calcProfit(recs, exps);
+
+      var wb = XLSX.utils.book_new();
+
+      /* Summary sheet */
+      var sumData = [
+        ['GasLedger — Report'],
+        ['Period', D(from) + ' to ' + D(to)],
+        [],
+        ['Metric', 'Value'],
+        ['Total kg sold', recs.reduce(function (s, r) { return s + r.sold; }, 0)],
+        ['Total revenue (₦)', p.revenue],
+        ['Gas cost (₦)', p.gasCost],
+        ['Total expenses (₦)', p.expenses],
+        ['Net profit (₦)', p.profit],
+        ['Cash collected (₦)', cash.reduce(function (s, c) { return s + (c.cash || 0); }, 0)],
+        ['POS collected (₦)', cash.reduce(function (s, c) { return s + (c.pos || 0); }, 0)],
+        ['Total payments (₦)', cash.reduce(function (s, c) { return s + (c.actual || ((c.cash || 0) + (c.pos || 0))); }, 0)],
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sumData), 'Summary');
+
+      /* Daily records sheet */
+      var dailyData = [['Date', 'Open Meter', 'Close Meter', 'Sold kg', 'Price/kg', 'Revenue']].concat(
+        recs.map(function (r) { return [r.date, r.open, r.close, r.sold, r.price, r.revenue]; })
+      );
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dailyData), 'Daily Records');
+
+      /* Cash sheet */
+      var cashData = [['Date', 'Expected', 'Cash', 'POS', 'Total', 'Difference', 'Status']].concat(
+        cash.map(function (c) { return [c.date, c.expected, c.cash || 0, c.pos || 0, c.actual || (c.cash || 0) + (c.pos || 0), c.diff, c.status]; })
+      );
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cashData), 'Cash & POS');
+
+      /* Expenses sheet */
+      var expData = [['Date', 'Category', 'Description', 'Amount']].concat(
+        exps.map(function (e) { return [e.date, EXP_CATS[e.category], e.desc || '', e.amount]; })
+      );
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expData), 'Expenses');
+
+      XLSX.writeFile(wb, 'gasledger-report-' + from + '-to-' + to + '.xlsx');
+    }
+
+    /* ── VARIANCE ── */
+    function renderVariance() {
+      var el = document.getElementById('varianceContent');
+      var issues = [];
+      cashRecs.forEach(function (c) {
+        var r = records.find(function (r) { return r.date === c.date; });
+        var total = c.actual || ((c.cash || 0) + (c.pos || 0));
+        if (c.status === 'short') {
+          var kgEq = (r && r.sold > 0 && c.expected > 0) ? (Math.abs(c.diff) / c.expected) * r.sold : 0;
+          issues.push({
+            date: c.date, sev: 'high',
+            msg: 'Payment shortfall of ' + M(Math.abs(c.diff)) + '. Expected ' + M(c.expected) + ', received ' + M(total) +
+              ' (Cash: ' + M(c.cash || 0) + ', POS: ' + M(c.pos || 0) + ').' +
+              (kgEq > 0 ? ' Equivalent to roughly ' + N(kgEq, 1) + ' kg unaccounted.' : '') +
+              (c.note ? ' Note: ' + c.note : '')
+          });
+        }
+        if (c.status === 'surplus') {
+          issues.push({
+            date: c.date, sev: 'medium',
+            msg: 'Payment surplus of ' + M(c.diff) + ' \u2014 more collected than expected.' + (c.note ? ' Note: ' + c.note : ' Verify if price changed or a correction was made.')
+          });
+        }
+      });
+      records.forEach(function (r) {
+        var hasC = cashRecs.find(function (c) { return c.date === r.date; });
+        if (!hasC) issues.push({
+          date: r.date, sev: 'info',
+          msg: 'No remittance record for this day. Meter shows ' + N(r.sold, 1) + ' kg sold (' + M(r.revenue) + ' expected). Go to Cash tab to reconcile.'
+        });
+      });
+      cashRecs.forEach(function (c) {
+        var hasR = records.find(function (r) { return r.date === c.date; });
+        if (!hasR) issues.push({
+          date: c.date, sev: 'medium',
+          msg: 'Remittance record exists but no meter entry for this day. Add the meter reading in the Entry tab.'
+        });
+      });
+      if (!issues.length) {
+        el.innerHTML = '<div class="banner ok"><i class="ti ti-circle-check"></i><p><strong>All clear!</strong> No discrepancies found. Every day with a meter entry has a matching remittance record and all amounts reconcile.</p></div>';
+        return;
+      }
+      var ord = { high: 0, medium: 1, info: 2 };
+      issues.sort(function (a, b) { return ord[a.sev] !== ord[b.sev] ? ord[a.sev] - ord[b.sev] : a.date < b.date ? -1 : 1; });
+      var hC = issues.filter(function (x) { return x.sev === 'high'; }).length;
+      var mC = issues.filter(function (x) { return x.sev === 'medium'; }).length;
+      var iC = issues.filter(function (x) { return x.sev === 'info'; }).length;
+      var parts = [];
+      if (hC) parts.push(hC + ' shortfall' + (hC > 1 ? 's' : ''));
+      if (mC) parts.push(mC + ' discrepanc' + (mC > 1 ? 'ies' : 'y'));
+      if (iC) parts.push(iC + ' unreconciled day' + (iC > 1 ? 's' : ''));
+      var h = '<div class="banner warn"><i class="ti ti-alert-triangle"></i>' +
+        '<p><strong>' + issues.length + ' item' + (issues.length > 1 ? 's' : '') + ' need attention</strong> &mdash; ' + parts.join(', ') + '.</p></div>';
+      issues.forEach(function (x) {
+        var cls = x.sev === 'high' ? 'danger' : x.sev === 'medium' ? 'warn' : 'ok';
+        var icon = x.sev === 'high' ? 'ti-alert-circle' : x.sev === 'medium' ? 'ti-alert-triangle' : 'ti-info-circle';
+        h += '<div class="banner ' + cls + '"><i class="ti ' + icon + '"></i>' +
+          '<p>' + (x.date ? '<strong>' + D(x.date) + '</strong> &mdash; ' : '') + x.msg + '</p></div>';
+      });
+      el.innerHTML = h;
+    }
+  </script>
+
+  <!-- ===================== PWA: SERVICE WORKER + INSTALL ===================== -->
+  <div id="installBanner" style="
+  display:none; position:fixed; bottom:1rem; left:1rem; right:1rem; z-index:999;
+  background:var(--accent); color:#fff; border-radius:12px; padding:0.9rem 1rem;
+  box-shadow:0 4px 20px rgba(0,0,0,0.18); align-items:center; gap:10px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+">
+    <i class="ti ti-device-mobile" style="font-size:22px;flex-shrink:0;"></i>
+    <div style="flex:1;">
+      <div style="font-size:14px;font-weight:600;">Install GasLedger</div>
+      <div style="font-size:12px;opacity:0.85;">Add to home screen for app experience</div>
+    </div>
+    <button id="installBtn"
+      style="background:#fff;color:#080F1E;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;">Install</button>
+    <button onclick="document.getElementById('installBanner').style.display='none'"
+      style="background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:0 2px;flex-shrink:0;">&times;</button>
+  </div>
+
+  <script>
+    /* ── SERVICE WORKER ── */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js')
+          .then(function (reg) { console.log('SW registered:', reg.scope); })
+          .catch(function (err) { console.log('SW failed:', err); });
+      });
+    }
+
+    /* ── INSTALL PROMPT (Android Chrome) ── */
+    var deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      var banner = document.getElementById('installBanner');
+      banner.style.display = 'flex';
+    });
+
+    document.getElementById('installBtn').addEventListener('click', function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (result) {
+        deferredPrompt = null;
+        document.getElementById('installBanner').style.display = 'none';
+      });
+    });
+
+    /* Hide banner if already installed */
+    window.addEventListener('appinstalled', function () {
+      document.getElementById('installBanner').style.display = 'none';
+      deferredPrompt = null;
+    });
+  </script>
+</body>
+
+</html>
